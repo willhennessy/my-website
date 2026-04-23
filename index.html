@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Will — Product Builder</title>
+  <meta name="description" content="Product builder. Turning ideas into things people use.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─── Custom Properties ─────────────────────────────── */
+    :root {
+      --bg:           #FAF8F5;
+      --text:         #1C1A18;
+      --muted:        #8C8680;
+      --accent:       #C1622F;
+      --accent-hover: #A84E22;
+      --accent-light: #F5E6DC;
+      --border:       #E5E0DA;
+      --white:        #FFFFFF;
+      --card-radius:  16px;
+      --ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
+      --ease-out:     cubic-bezier(0.23, 1, 0.32, 1);
+      --ease-smooth:  cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    /* ─── Reset ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', -apple-system, sans-serif;
+      font-size: 17px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    img { display: block; max-width: 100%; }
+    a { color: inherit; }
+
+    /* ─── Layout ─────────────────────────────────────────── */
+    .container {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 0 36px;
+    }
+
+    /* ─── Scroll-reveal ──────────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.55s var(--ease-out), transform 0.55s var(--ease-out);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: 0.08s; }
+    .reveal-delay-2 { transition-delay: 0.16s; }
+    .reveal-delay-3 { transition-delay: 0.24s; }
+
+    /* ─── Nav ────────────────────────────────────────────── */
+    nav {
+      padding: 28px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .nav-wordmark {
+      font-family: 'Fraunces', Georgia, serif;
+      font-optical-sizing: auto;
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .nav-cta {
+      font-size: 0.88rem;
+      font-weight: 500;
+      text-decoration: none;
+      color: var(--muted);
+      padding: 9px 20px;
+      border: 1.5px solid var(--border);
+      border-radius: 999px;
+      transition: color 0.25s, border-color 0.25s, background 0.25s, transform 0.15s var(--ease-spring);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .nav-cta:hover {
+        color: var(--accent);
+        border-color: var(--accent);
+        background: var(--accent-light);
+      }
+    }
+    .nav-cta:active { transform: scale(0.94); }
+
+    /* ─── Hero ───────────────────────────────────────────── */
+    #hero {
+      padding: 72px 0 96px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 28px;
+    }
+
+    /* Spinning gradient ring */
+    .headshot-outer {
+      position: relative;
+      width: 148px;
+      height: 148px;
+      flex-shrink: 0;
+    }
+    .headshot-ring {
+      position: absolute;
+      inset: -5px;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 0deg,
+        var(--accent) 0%,
+        #E8A87C 25%,
+        #F5C59A 45%,
+        #D4704A 65%,
+        var(--accent) 100%
+      );
+      animation: ring-spin 7s linear infinite;
+    }
+    .headshot-ring::after {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border-radius: 50%;
+      background: var(--bg);
+    }
+    .headshot {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      z-index: 1;
+      /* Placeholder gradient shown if image missing */
+      background: linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 100%);
+    }
+    @keyframes ring-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .hero-name {
+      font-family: 'Fraunces', Georgia, serif;
+      font-optical-sizing: auto;
+      font-size: clamp(2.6rem, 7vw, 4.2rem);
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      line-height: 1.05;
+      color: var(--text);
+    }
+    .hero-name em {
+      font-style: italic;
+      color: var(--accent);
+    }
+    .hero-sub {
+      font-size: 1.08rem;
+      color: var(--muted);
+      max-width: 380px;
+      line-height: 1.6;
+    }
+
+    /* ─── Section shared ─────────────────────────────────── */
+    .section {
+      padding: 80px 0;
+      border-top: 1px solid var(--border);
+    }
+    .section-eyebrow {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .section-heading {
+      font-family: 'Fraunces', Georgia, serif;
+      font-optical-sizing: auto;
+      font-size: clamp(1.9rem, 4vw, 2.5rem);
+      font-weight: 700;
+      letter-spacing: -0.028em;
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 36px;
+    }
+
+    /* ─── About ──────────────────────────────────────────── */
+    .about-body {
+      max-width: 620px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .about-body p {
+      font-size: 1.04rem;
+      line-height: 1.78;
+      color: var(--text);
+    }
+    .about-body strong {
+      font-weight: 600;
+    }
+
+    /* ─── Projects grid ──────────────────────────────────── */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    /* Flip card */
+    .flip-wrapper {
+      perspective: 1100px;
+      height: 288px;
+    }
+    .flip-card {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.65s cubic-bezier(0.4, 0.2, 0.2, 1);
+      cursor: pointer;
+      border-radius: var(--card-radius);
+    }
+    .flip-wrapper:hover .flip-card,
+    .flip-wrapper.tapped .flip-card {
+      transform: rotateY(180deg);
+    }
+
+    .flip-face {
+      position: absolute;
+      inset: 0;
+      border-radius: var(--card-radius);
+      overflow: hidden;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    /* Front face */
+    .flip-front {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 20px;
+    }
+    .flip-front-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+    /* Dark gradient overlay for text legibility */
+    .flip-front::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.0) 55%);
+      z-index: 1;
+    }
+    .flip-front-text {
+      position: relative;
+      z-index: 2;
+    }
+    .flip-tag {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      color: rgba(255,255,255,0.92);
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+    .flip-title {
+      font-family: 'Fraunces', Georgia, serif;
+      font-optical-sizing: auto;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    /* Back face */
+    .flip-back {
+      transform: rotateY(180deg);
+      background: var(--white);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px;
+    }
+    .flip-back-title {
+      font-family: 'Fraunces', Georgia, serif;
+      font-optical-sizing: auto;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .flip-desc {
+      font-size: 0.87rem;
+      color: var(--muted);
+      line-height: 1.62;
+    }
+    .flip-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--accent);
+      text-decoration: none;
+      padding: 9px 18px;
+      border: 1.5px solid var(--accent);
+      border-radius: 999px;
+      width: fit-content;
+      transition: background 0.2s, color 0.2s, transform 0.15s var(--ease-spring);
+    }
+    .flip-link:hover { background: var(--accent); color: #fff; }
+    .flip-link:active { transform: scale(0.94); }
+
+    /* Card color themes */
+    .c-amber .flip-front-bg  { background: linear-gradient(140deg, #C1622F, #E8A84A); }
+    .c-teal  .flip-front-bg  { background: linear-gradient(140deg, #2E7D7A, #5BA89A); }
+    .c-plum  .flip-front-bg  { background: linear-gradient(140deg, #6B3F80, #A975C4); }
+    .c-slate .flip-front-bg  { background: linear-gradient(140deg, #2E4A6A, #5A80A0); }
+    .c-sage  .flip-front-bg  { background: linear-gradient(140deg, #3A6A4A, #70A07A); }
+    .c-rose  .flip-front-bg  { background: linear-gradient(140deg, #A03A4A, #D47080); }
+
+    /* ─── Contact ────────────────────────────────────────── */
+    #contact { padding-bottom: 112px; }
+
+    .contact-list { display: flex; flex-direction: column; }
+    .contact-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 22px 0;
+      border-bottom: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--text);
+      transition: color 0.22s;
+    }
+    .contact-row:first-child { border-top: 1px solid var(--border); }
+    @media (hover: hover) and (pointer: fine) {
+      .contact-row:hover { color: var(--accent); }
+      .contact-row:hover .contact-arrow { transform: translateX(7px); color: var(--accent); }
+      .contact-row:hover .contact-key  { color: var(--accent); }
+    }
+    .contact-row:active { opacity: 0.7; }
+
+    .contact-key {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+      color: var(--muted);
+      width: 78px;
+      flex-shrink: 0;
+      transition: color 0.22s;
+    }
+    .contact-val {
+      font-size: 1.03rem;
+      font-weight: 500;
+      flex: 1;
+    }
+    .contact-arrow {
+      color: var(--muted);
+      font-size: 1rem;
+      transition: transform 0.25s var(--ease-smooth), color 0.22s;
+    }
+
+    /* ─── Footer ─────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 0;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    /* ─── Responsive ─────────────────────────────────────── */
+    @media (max-width: 700px) {
+      .container { padding: 0 24px; }
+      #hero { padding: 56px 0 72px; }
+      .projects-grid { grid-template-columns: repeat(2, 1fr); }
+      .flip-wrapper { height: 256px; }
+    }
+    @media (max-width: 460px) {
+      .projects-grid { grid-template-columns: 1fr; }
+      .flip-wrapper { height: 232px; }
+    }
+
+    /* ─── Reduced motion ─────────────────────────────────── */
+    @media (prefers-reduced-motion: reduce) {
+      .headshot-ring { animation: none; }
+      .reveal {
+        opacity: 0;
+        transform: none;
+        transition: opacity 0.4s ease;
+      }
+      .flip-card { transition: none; }
+      .contact-arrow { transition: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Nav ──────────────────────────────────────────────── -->
+  <div class="container">
+    <nav>
+      <a href="#" class="nav-wordmark">Will.</a>
+      <a href="#contact" class="nav-cta">Let's chat →</a>
+    </nav>
+  </div>
+
+  <!-- ── Hero ─────────────────────────────────────────────── -->
+  <div class="container">
+    <section id="hero">
+
+      <div class="headshot-outer reveal">
+        <div class="headshot-ring"></div>
+        <!--
+          Replace "headshot.jpg" with your actual photo filename.
+          The gradient background below shows if the image is missing.
+        -->
+        <img
+          src="headshot.jpg"
+          alt="Will"
+          class="headshot"
+          onerror="this.style.background='linear-gradient(135deg,#F5E6DC,#C1622F)'; this.removeAttribute('src');"
+        >
+      </div>
+
+      <div class="reveal reveal-delay-1">
+        <h1 class="hero-name">Hi, I'm <em>Will.</em></h1>
+      </div>
+      <p class="hero-sub reveal reveal-delay-2">
+        Product builder. Turning ideas into things people actually use.
+      </p>
+
+    </section>
+  </div>
+
+  <!-- ── About ────────────────────────────────────────────── -->
+  <div class="container">
+    <section id="about" class="section">
+      <p class="section-eyebrow reveal">About me</p>
+      <h2 class="section-heading reveal reveal-delay-1">Building things<br>that matter.</h2>
+      <div class="about-body reveal reveal-delay-2">
+        <p>
+          I'm a product builder who loves the full stack of getting an idea to market — from
+          scribbling on a whiteboard to shipping something real that people actually use. I
+          believe great products live at the intersection of <strong>sharp thinking</strong>,
+          honest craft, and genuine user empathy.
+        </p>
+        <p>
+          Over the years I've worked across early-stage startups and growth-stage companies,
+          usually found somewhere between engineering, design, and strategy. I enjoy the messy,
+          exciting work of figuring out <em>what</em> to build before optimizing <em>how</em>
+          to build it.
+        </p>
+        <p>
+          Outside of work, I think a lot about systems, interfaces, and why certain things feel
+          good to use and others don't. I'm always tinkering on side projects — some ship,
+          some don't, all of them teach me something.
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ── Projects ─────────────────────────────────────────── -->
+  <div class="container">
+    <section id="projects" class="section">
+      <p class="section-eyebrow reveal">Work</p>
+      <h2 class="section-heading reveal reveal-delay-1">Things I've built.</h2>
+
+      <div class="projects-grid">
+
+        <!--
+          Each card flips on hover (desktop) or tap (mobile).
+          Front: colorful gradient + title tag.
+          Back: description + link.
+          To add a real image: replace the .flip-front-bg div with an <img> tag
+          and remove the .c-* class from .flip-card.
+        -->
+
+        <!-- 1 -->
+        <div class="flip-wrapper reveal">
+          <div class="flip-card c-amber">
+            <div class="flip-face flip-front">
+              <div class="flip-front-bg"></div>
+              <div class="flip-front-text">
+                <span class="flip-tag">SaaS · 2024</span>
+                <h3 class="flip-title">BuildFlow</h3>
+              </div>
+            </div>
+            <div class="flip-face flip-back">
+              <div>
+                <h3 class="flip-back-title">BuildFlow</h3>
+                <p class="flip-desc">
+                  A drag-and-drop product roadmap tool built for small teams. Helps PMs and
+                  founders prioritize ruthlessly and communicate clearly with stakeholders.
+                </p>
+              </div>
+              <a href="#" class="flip-link">View project →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2 -->
+        <div class="flip-wrapper reveal reveal-delay-1">
+          <div class="flip-card c-teal">
+            <div class="flip-face flip-front">
+              <div class="flip-front-bg"></div>
+              <div class="flip-front-text">
+                <span class="flip-tag">Analytics · 2024</span>
+                <h3 class="flip-title">Pulse</h3>
+              </div>
+            </div>
+            <div class="flip-face flip-back">
+              <div>
+                <h3 class="flip-back-title">Pulse</h3>
+                <p class="flip-desc">
+                  Real-time user analytics built for clarity. Surfaces the metrics that drive
+                  decisions, not just vanity numbers. Launched to 500+ paying teams.
+                </p>
+              </div>
+              <a href="#" class="flip-link">View project →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 -->
+        <div class="flip-wrapper reveal reveal-delay-2">
+          <div class="flip-card c-plum">
+            <div class="flip-face flip-front">
+              <div class="flip-front-bg"></div>
+              <div class="flip-front-text">
+                <span class="flip-tag">Dev Tools · 2023</span>
+                <h3 class="flip-title">Scaff</h3>
+              </div>
+            </div>
+            <div class="flip-face flip-back">
+              <div>
+                <h3 class="flip-back-title">Scaff</h3>
+                <p class="flip-desc">
+                  Developer onboarding automation. Cuts time-to-first-commit from days to
+                  minutes with auto-generated setup scripts and team-specific docs.
+                </p>
+              </div>
+              <a href="#" class="flip-link">View project →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 -->
+        <div class="flip-wrapper reveal">
+          <div class="flip-card c-slate">
+            <div class="flip-face flip-front">
+              <div class="flip-front-bg"></div>
+              <div class="flip-front-text">
+                <span class="flip-tag">Collab · 2023</span>
+                <h3 class="flip-title">Threadly</h3>
+              </div>
+            </div>
+            <div class="flip-face flip-back">
+              <div>
+                <h3 class="flip-back-title">Threadly</h3>
+                <p class="flip-desc">
+                  Async team communication for focused work. Threads over channels, summaries
+                  over scrolling — with a clean keyboard-first UX.
+                </p>
+              </div>
+              <a href="#" class="flip-link">View project →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5 -->
+        <div class="flip-wrapper reveal reveal-delay-1">
+          <div class="flip-card c-sage">
+            <div class="flip-face flip-front">
+              <div class="flip-front-bg"></div>
+              <div class="flip-front-text">
+                <span class="flip-tag">Consumer · 2022</span>
+                <h3 class="flip-title">Locus</h3>
+              </div>
+            </div>
+            <div class="flip-face flip-back">
+              <div>
+                <h3 class="flip-back-title">Locus</h3>
+                <p class="flip-desc">
+                  A habit tracker with a spatial twist — visualize your routines as a map of
+                  your day. Makes habit-building feel less like a chore.
+                </p>
+              </div>
+              <a href="#" class="flip-link">View project →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6 -->
+        <div class="flip-wrapper reveal reveal-delay-2">
+          <div class="flip-card c-rose">
+            <div class="flip-face flip-front">
+              <div class="flip-front-bg"></div>
+              <div class="flip-front-text">
+                <span class="flip-tag">Open Source · 2021</span>
+                <h3 class="flip-title">Forma</h3>
+              </div>
+            </div>
+            <div class="flip-face flip-back">
+              <div>
+                <h3 class="flip-back-title">Forma</h3>
+                <p class="flip-desc">
+                  Lightweight form validation for React. No dependencies, ~3kb gzipped.
+                  Used by 200+ projects and still the cleanest API I've ever designed.
+                </p>
+              </div>
+              <a href="#" class="flip-link">View project →</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <!-- ── Contact ───────────────────────────────────────────── -->
+  <div class="container">
+    <section id="contact" class="section">
+      <p class="section-eyebrow reveal">Connect</p>
+      <h2 class="section-heading reveal reveal-delay-1">Let's chat.</h2>
+
+      <nav class="contact-list reveal reveal-delay-2" aria-label="Contact links">
+
+        <!-- Replace with your actual email -->
+        <a href="mailto:will@example.com" class="contact-row">
+          <span class="contact-key">Email</span>
+          <span class="contact-val">will@example.com</span>
+          <span class="contact-arrow">→</span>
+        </a>
+
+        <!-- Replace with your actual GitHub handle -->
+        <a href="https://github.com/will" target="_blank" rel="noopener noreferrer" class="contact-row">
+          <span class="contact-key">GitHub</span>
+          <span class="contact-val">github.com/will</span>
+          <span class="contact-arrow">→</span>
+        </a>
+
+        <!-- Replace with your actual LinkedIn path -->
+        <a href="https://linkedin.com/in/will" target="_blank" rel="noopener noreferrer" class="contact-row">
+          <span class="contact-key">LinkedIn</span>
+          <span class="contact-val">linkedin.com/in/will</span>
+          <span class="contact-arrow">→</span>
+        </a>
+
+      </nav>
+    </section>
+  </div>
+
+  <!-- ── Footer ────────────────────────────────────────────── -->
+  <footer>
+    <div class="container">
+      <p>© 2026 Will. Built with care.</p>
+    </div>
+  </footer>
+
+  <script>
+    // ── Scroll-reveal via IntersectionObserver ───────────────
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // ── Tap-to-flip for mobile ───────────────────────────────
+    document.querySelectorAll('.flip-wrapper').forEach(wrapper => {
+      wrapper.addEventListener('click', () => {
+        // On touch devices, toggle the flip; on desktop hover handles it
+        if (window.matchMedia('(hover: none)').matches) {
+          wrapper.classList.toggle('tapped');
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
