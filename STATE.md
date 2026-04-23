@@ -54,13 +54,13 @@ Hosting setup
 - [x] Confirmed GitHub auth is available locally as `willhennessy`
 - [x] Verified the current GitHub account plan is `free`
 - [x] Verified the current DNS for `willhennessy.io` is still pointed at Namecheap parking
-- [x] Created the private GitHub repo `willhennessy/my-website`
+- [x] Created the original private GitHub repo `willhennessy/my-website`
 - [x] Confirmed GitHub Pages is blocked on the current plan for that private repo
 - [x] Replaced the About section copy in `index.html` with lorem ipsum
-- [x] Created the public GitHub repo `willhennessy/personal-website`
-- [x] Enabled GitHub Pages for `willhennessy/personal-website`
+- [x] Created the public GitHub repo and renamed it to `willhennessy/my-website`
+- [x] Enabled GitHub Pages for the public `willhennessy/my-website` repo
 - [x] Wired the Pages site to the custom domain `willhennessy.io` on the GitHub side
 
 ## Notes for Next Session
 
-There are now two remotes for this local repo: the private source repo `origin` (`willhennessy/my-website`) and the public Pages repo `public` (`willhennessy/personal-website`). GitHub Pages is enabled on the public repo with `main` as the source and `willhennessy.io` as the configured custom domain. The remaining work is DNS cutover at Namecheap and then HTTPS enforcement.
+The canonical repo is now the public `https://github.com/willhennessy/my-website`, and the local checkout tracks it via `origin`. GitHub Pages is enabled on that repo with `main` as the source and `willhennessy.io` as the configured custom domain. The remaining work is DNS cutover at Namecheap and then HTTPS enforcement.
