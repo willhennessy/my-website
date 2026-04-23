@@ -30,30 +30,32 @@ Hosting setup
   - The desired custom domain is the apex domain `willhennessy.io`.
   - The source repo should be private.
 - **Acceptance Criteria**:
-  - [ ] The project is in git with a clean first commit.
-  - [ ] The source repository exists on GitHub as a private repo.
-  - [ ] The repo contains the files needed for GitHub Pages custom-domain setup.
+  - [x] The project is in git with a clean first commit.
+  - [x] The source repository exists on GitHub as a private repo.
+  - [x] The repo contains the files needed for GitHub Pages custom-domain setup.
   - [ ] The remaining publish path is documented clearly enough to finish without guesswork.
-- **Status**: In Progress
+- **Status**: Blocked
 
 ## Blockers / Open Questions
 
 - GitHub Pages cannot publish directly from a private repo on the current `GitHub Free` personal plan.
+- GitHub's Pages API returns `422 Your current plan does not support GitHub Pages for this repository` for `willhennessy/my-website`.
 - Decide between upgrading the account to GitHub Pro or using a separate public deploy repository while keeping this source repo private.
 
 ## Up Next
 
-- [ ] Initialize git and create the private source repository
-- [ ] Add GitHub Pages support files and deployment notes
 - [ ] Choose the final publish path for the private-source requirement
+- [ ] Configure GitHub Pages in the chosen publish repo
+- [ ] Switch DNS from Namecheap parking to the final GitHub Pages target
 
 ## Completed
 
-- [x] Inspected the current repo and confirmed the site is a single static `index.html`
 - [x] Confirmed GitHub auth is available locally as `willhennessy`
 - [x] Verified the current GitHub account plan is `free`
 - [x] Verified the current DNS for `willhennessy.io` is still pointed at Namecheap parking
+- [x] Created the private GitHub repo `willhennessy/my-website`
+- [x] Confirmed GitHub Pages is blocked on the current plan for that private repo
 
 ## Notes for Next Session
 
-The source repo can be private, but the current account plan blocks direct GitHub Pages publishing from that repo. The likely next step is either an account upgrade or a two-repo setup with a private source repo and a public Pages deploy repo.
+The source repo is now live at `https://github.com/willhennessy/my-website`. GitHub Pages cannot publish directly from it on the current plan, so the next move is either an account upgrade to GitHub Pro or a two-repo setup with this private source repo plus a public Pages deploy repo.
