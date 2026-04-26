@@ -35,7 +35,6 @@ build.py                 # markdown → HTML build
    category: Product
    description: One-sentence SEO blurb.
    lede: Subhead under the title (markdown allowed).
-   tags: PRD, Product, Strategy
    ---
 
    Body in markdown.
