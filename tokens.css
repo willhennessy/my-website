@@ -1,0 +1,131 @@
+/* =========================================================================
+   Tokens — lifted from Design System.html
+   ========================================================================= */
+:root, [data-theme="light"] {
+  --color-bg-app: #FCFCF8;
+  --color-bg-sidebar: #F6F5F0;
+  --color-bg-surface: #FFFFFF;
+  --color-bg-surface-raised: #FFFFFF;
+  --color-bg-surface-elevated: #FFFFFF;
+  --color-bg-dotted-pattern: #F2F2EE;
+
+  --color-border-default: #E4E3DE;
+  --color-border-subtle: #EDECE6;
+  --color-border-strong: #D9D9D9;
+  --color-border-input: #DADADA;
+
+  --color-text-primary: #121210;
+  --color-text-secondary: #383836;
+  --color-text-tertiary: #6B6B68;
+  --color-text-muted: #969694;
+  --color-text-placeholder: #A8A8A5;
+  --color-text-inverse: #FFFFFF;
+
+  --color-brand: #C99A5B;
+  --color-brand-hover: #B8883F;
+  --color-signal: #4A9C95;
+  --color-signal-hover: #3A8780;
+  --color-status-success: #6B9A5F;
+  --color-status-warning: #B07A2E;
+  --color-status-error: #B55A4A;
+  --color-signal-glow: color-mix(in srgb, var(--color-signal) 28%, transparent);
+  --color-focus-ring: #4A9C95;
+
+  --color-icon-default: #383836;
+  --color-icon-muted: #8F8F8C;
+
+  --color-pill-active-bg: #EEEFEA;
+  --color-hover-bg: #EFEEE8;
+  --color-selected-bg: #E8E7E1;
+
+  --color-element-ochre:  #C99A5B;  --color-element-ochre-fill:  #F3EADC;
+  --color-element-teal:   #4A9C95;  --color-element-teal-fill:   #DCEBE6;
+  --color-element-sage:   #8AA870;  --color-element-sage-fill:   #E7EDE0;
+  --color-element-indigo: #6B7FC9;  --color-element-indigo-fill: #E2E6F0;
+  --color-element-plum:   #9B6B9E;  --color-element-plum-fill:   #EBE2E8;
+  --color-element-rose:   #C97085;  --color-element-rose-fill:   #F3E3E3;
+  --color-element-slate:  #6B8294;  --color-element-slate-fill:  #E2E6E6;
+}
+[data-theme="dark"] {
+  --color-bg-app: #1F1F1D;
+  --color-bg-sidebar: #262625;
+  --color-bg-surface: #2C2C2A;
+  --color-bg-surface-raised: #313130;
+  --color-bg-surface-elevated: #3D3D3C;
+  --color-bg-dotted-pattern: #2A2A28;
+
+  --color-border-default: #3A3A38;
+  --color-border-subtle: #2F2F2D;
+  --color-border-strong: #575651;
+  --color-border-input: #575651;
+
+  --color-text-primary: #C2C2B8;
+  --color-text-secondary: #A8A8A0;
+  --color-text-tertiary: #8A8A85;
+  --color-text-muted: #7E7E7C;
+  --color-text-placeholder: #6B6B68;
+  --color-text-inverse: #121210;
+
+  --color-brand: #C99A5B;
+  --color-brand-hover: #D8AB6E;
+  --color-signal: #5FB3AB;
+  --color-signal-hover: #4F9E96;
+  --color-status-success: #7FAE73;
+  --color-status-warning: #D39A47;
+  --color-status-error: #C97060;
+  --color-signal-glow: color-mix(in srgb, var(--color-signal) 34%, transparent);
+  --color-focus-ring: #5FB3AB;
+
+  --color-icon-default: #A8A8A0;
+  --color-icon-muted: #7E7E7C;
+
+  --color-pill-active-bg: #3D3D3C;
+  --color-hover-bg: #313130;
+  --color-selected-bg: #3D3D3C;
+
+  --color-element-ochre:  #C99A5B;  --color-element-ochre-fill:  #443A2B;
+  --color-element-teal:   #5FB3AB;  --color-element-teal-fill:   #2D403C;
+  --color-element-sage:   #9AB880;  --color-element-sage-fill:   #3A4133;
+  --color-element-indigo: #8093D4;  --color-element-indigo-fill: #343945;
+  --color-element-plum:   #AE7FB2;  --color-element-plum-fill:   #3E343E;
+  --color-element-rose:   #D68396;  --color-element-rose-fill:   #473538;
+  --color-element-slate:  #8197A8;  --color-element-slate-fill:  #35393C;
+}
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration-press: 140ms;
+  --duration-fast: 180ms;
+  --duration-medium: 240ms;
+  --duration-slow: 320ms;
+
+  --font-sans: "Instrument Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-display: "Instrument Serif", "Instrument Sans", Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Consolas, monospace;
+
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 22px;
+  --radius-pill: 999px;
+
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px;
+  --space-4: 16px; --space-5: 20px; --space-6: 24px;
+  --space-8: 32px; --space-10: 40px; --space-12: 56px;
+  --space-16: 80px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--color-bg-app); color-scheme: light; height: 100%; }
+html[data-theme="dark"] { color-scheme: dark; }
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--color-bg-app);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  line-height: 1.55;
+}

@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Will Hennessy</title>
-<meta name="description" content="Will Hennessy — Staff PM building products at the edge of new technology. Currently building Architect." />
+<title>The shape of a good PRD — Will Hennessy</title>
+<meta name="description" content="Most PRDs are too long in the wrong places and too short everywhere else. Here's the silhouette I keep coming back to." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tokens.css" />
-<link rel="stylesheet" href="site.css" />
+<link rel="stylesheet" href="../tokens.css" />
+<link rel="stylesheet" href="../site.css" />
 <script>
   (function () {
     const root = document.documentElement;
@@ -33,14 +33,13 @@
 </script>
 </head>
 <body>
-<div class="page">
+<article class="article">
 
-  <nav class="topnav" aria-label="Primary">
-    <ul class="topnav-links">
-      <li><a class="topnav-link" href="#about">About</a></li>
-      <li><a class="topnav-link" href="#writing">Writing</a></li>
-      <li><a class="topnav-link" href="#projects">Projects</a></li>
-    </ul>
+  <div class="article-toprow">
+    <a class="article-back" href="../index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Home
+    </a>
     <button
       id="themeToggle"
       class="theme-toggle"
@@ -74,74 +73,72 @@
         </span>
       </span>
     </button>
-  </nav>
+  </div>
 
-  <header class="hero">
-    <figure class="hero-portrait">
-      <img src="assets/headshot.jpg" alt="Portrait of Will Hennessy" />
-    </figure>
-    <div class="hero-text">
-      <h1 class="hero-title">Will Hennessy</h1>
-      <p class="hero-sub">Currently building Architect</p>
+  <header>
+    <p class="article-meta">Mar 2026 · 6 min read · Product</p>
+    <h1 class="article-title">The <em>shape</em> of a good PRD</h1>
+    <p class="article-lede">Most PRDs are too long in the wrong places and too short everywhere else. Here's the silhouette I keep coming back to.</p>
+
+    <div class="article-tags">
+      <a class="article-tag" href="#">PRD</a>
+      <a class="article-tag" href="#">Product</a>
+      <a class="article-tag" href="#">Strategy</a>
+    </div>
+
+    <div class="article-byline">
+      <div class="article-byline-avatar">
+        <img src="../assets/headshot.jpg" alt="Portrait of Will Hennessy" onerror="this.style.display='none'" />
+      </div>
+      <div>
+        <p class="article-byline-name">Will Hennessy</p>
+        <p class="article-byline-meta">Published Mar 15, 2026</p>
+      </div>
     </div>
   </header>
 
-  <section class="section about" id="about">
-    <h2 class="section-title">About</h2>
-    <p>Lately I've been exploring interface design for human-to-agent steering loops.</p>
-    <p>I'm building Architect, an interactive interface for Claude Plan Mode. The plugin generates a visual diagram so you can see the whole system at a glance and comment directly on nodes and edges to steer the plan.</p>
-    <p>I love building products on the edge of new technology. In the last ten years I've worked on personal assistants at Google, a consumer wallet at Uniswap, and a blockchain developer platform at Alchemy.</p>
-</section>
+  <div class="article-body">
+<p>I've read a thousand product docs and written maybe two hundred. Most of them were too long in the wrong places and too short everywhere else.</p>
+<p>The first sign a PRD is going sideways is that you can't summarize it in one breath. If you can't, the reader can't either — and they have seven other tabs open. A good PRD has a <em>shape</em> before it has sentences. You should be able to glance at the first half-screen and know what's going on.</p>
+<blockquote>
+<p>A PRD is a promise about what we'll build and a bet about why it matters. Everything else is scaffolding.</p>
+</blockquote>
+<h2>The silhouette</h2>
+<p>Here's the order I use, and roughly how much space each part deserves. It works whether you're writing four paragraphs or four pages.</p>
+<ul>
+<li><strong>One-liner.</strong> The product, in a single sentence, to a skeptical reader.</li>
+<li><strong>Why now.</strong> What changed in the world, the market, or our stack.</li>
+<li><strong>Who it's for.</strong> One named user and the problem they keep hitting.</li>
+<li><strong>What we'll build.</strong> A sketch, not a spec. Enough to argue with.</li>
+<li><strong>What we're cutting.</strong> The things a reasonable person would expect but we're choosing not to do.</li>
+<li><strong>How we'll know it worked.</strong> One metric, maybe two. Not six.</li>
+</ul>
+<p>If a section balloons past its natural weight, something's wrong. A giant <em>What we'll build</em> usually means we're avoiding the <em>Why now</em>. A giant <em>Why now</em> usually means we don't know what to build yet.</p>
+<h2>The non-negotiables</h2>
+<h3>Write it for the person who wasn't in the meeting</h3>
+<p>The best test of a PRD is handing it to a smart engineer who missed the whole kickoff. If they come back with the right questions, the doc is working. If they come back with <em>basic</em> questions, it isn't.</p>
+<h3>Make the cuts visible</h3>
+<p>A <code>Not doing</code> list is worth more than any ambitious scope section. It tells the reader you've actually thought about the thing, and it saves a dozen "what about…" conversations later.</p>
+<h3>One metric, chosen on purpose</h3>
+<p>Teams that pick one metric ship the thing. Teams that pick five ship arguments. If you genuinely need a supporting metric, call it a <em>supporting</em> metric so everyone knows which one we'd fight for.</p>
+<h2>What a PRD is not</h2>
+<p>It isn't a status update. It isn't a design doc. It isn't a sales pitch — though it should be pitchable. And it's not where you go to think; you go somewhere quieter for that and come back with a draft.</p>
+<p>If you remember one thing: a PRD earns its length. Every paragraph should be doing a job. If you can't say what the job is, cut it.</p>
+    <p class="article-end">✦</p>
+  </div>
 
-  <section class="section writing" id="writing">
-    <h2 class="section-title">Writing</h2>
+  
 
-    <ul class="writing-list" style="margin-top:40px;">
-      <li class="writing-item">
-        <a class="writing-link" href="writing/the-shape-of-a-good-prd.html">
-          <span class="writing-date">Mar 2026</span>
-          <div>
-            <p class="writing-title">The <em>shape</em> of a good PRD</p>
-            <p class="writing-meta">6 min read · Product</p>
-          </div>
-          <svg class="writing-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
-        </a>
-      </li>
-    </ul>
-  </section>
+</article>
 
-  <section class="section projects" id="projects">
-    <h2 class="section-title">Projects</h2>
-
-    <div class="projects-grid" style="margin-top:40px;">
-      <a class="project-card" data-tag="Plugin" href="#" style="--thumb-a: var(--color-element-teal); --thumb-b: var(--color-element-sage); --thumb-ink: var(--color-element-teal);">
-        <div class="project-thumb">
-          <span class="project-thumb-tag">Plugin</span>
-          <span class="project-thumb-glyph">A</span>
-        </div>
-        <div class="project-meta">
-          <h3 class="project-name">
-            Architect
-            <svg class="project-name-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
-          </h3>
-          <p class="project-desc">An interactive interface for Claude Plan Mode. See the system, comment on the diagram, steer the plan.</p>
-          <span class="project-year">2026 — In progress</span>
-        </div>
-      </a>
-    </div>
-  </section>
-
-  <footer class="footer">
-    <div>© 2026 Will Hennessy</div>
-    <div class="footer-social">
-      <a href="https://x.com/WillHennessy_">Twitter</a>
-      <a href="https://github.com/willhennessy">GitHub</a>
-      <a href="https://www.linkedin.com/in/hennessywill/">LinkedIn</a>
-    </div>
-  </footer>
-
-</div>
-
+<footer class="footer" style="max-width: 680px; margin: 0 auto; padding: 0 32px 64px;">
+  <div>© 2026 Will Hennessy</div>
+  <div class="footer-social">
+    <a href="https://x.com/WillHennessy_">Twitter</a>
+    <a href="https://github.com/willhennessy">GitHub</a>
+    <a href="https://www.linkedin.com/in/hennessywill/">LinkedIn</a>
+  </div>
+</footer>
 <script>
   const THEME_STORAGE_KEY = 'theme';
 
