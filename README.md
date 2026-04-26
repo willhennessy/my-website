@@ -4,13 +4,57 @@ Static personal site for `willhennessy.io`.
 
 ## What this is
 
-- Single-file site in `index.html`
-- GitHub Pages-ready via `CNAME` and `.nojekyll`
-- Intended source repo visibility: private
+- Static site, GitHub Pages-ready via `CNAME` and `.nojekyll`
+- Design implemented from a Claude Design handoff bundle (Instrument Sans/Serif, light + dark themes, ochre accent)
+- Markdown-driven blog: write `posts/*.md`, run the build, commit the generated HTML
+
+## Repo layout
+
+```
+index.html               # generated — site landing page
+tokens.css, site.css     # design tokens + styles (hand-edit these)
+assets/                  # images
+posts/                   # blog posts in markdown (write here)
+writing/                 # generated HTML for each post
+templates/
+  index.html             # source template for index.html
+  post.html              # source template for each post
+build.py                 # markdown → HTML build
+```
+
+## Writing a new post
+
+1. Create `posts/<slug>.md` with frontmatter:
+
+   ```markdown
+   ---
+   title: The *shape* of a good PRD
+   slug: the-shape-of-a-good-prd
+   date: 2026-03-15
+   read_time: 6 min read
+   category: Product
+   description: One-sentence SEO blurb.
+   lede: Subhead under the title (markdown allowed).
+   tags: PRD, Product, Strategy
+   ---
+
+   Body in markdown.
+   ```
+
+   Required: `title`, `slug`, `date`. Everything else has sensible defaults
+   (e.g. `read_time` is auto-estimated).
+
+2. Run the build:
+
+   ```bash
+   pip3 install --user markdown   # one-time
+   python3 build.py
+   ```
+
+3. Commit `posts/<slug>.md`, the generated `writing/<slug>.html`, and the
+   updated `index.html`.
 
 ## Local preview
-
-Open `index.html` directly, or run:
 
 ```bash
 python3 -m http.server 8000
