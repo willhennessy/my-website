@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>The shape of a good PRD — Will Hennessy</title>
-<meta name="description" content="Most PRDs are too long in the wrong places and too short everywhere else. Here's the silhouette I keep coming back to." />
+<title>Claude Architect: steer coding agents with interactive diagrams — Will Hennessy</title>
+<meta name="description" content="The Claude Architect plugin adds an interactive architecture diagram to Plan Mode so you can review, annotate, and revise the plan with Claude in real time." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -76,15 +76,9 @@
   </div>
 
   <header>
-    <p class="article-meta">Mar 2026 · 6 min read · Product</p>
-    <h1 class="article-title">The <em>shape</em> of a good PRD</h1>
-    <p class="article-lede">Most PRDs are too long in the wrong places and too short everywhere else. Here's the silhouette I keep coming back to.</p>
-
-    <div class="article-tags">
-      <a class="article-tag" href="#">PRD</a>
-      <a class="article-tag" href="#">Product</a>
-      <a class="article-tag" href="#">Strategy</a>
-    </div>
+    <p class="article-meta">6 min read · Launch</p>
+    <h1 class="article-title">Claude Architect: steer coding agents with interactive diagrams</h1>
+    <p class="article-lede">Make Plan Mode feel like a whiteboard session</p>
 
     <div class="article-byline">
       <div class="article-byline-avatar">
@@ -92,46 +86,99 @@
       </div>
       <div>
         <p class="article-byline-name">Will Hennessy</p>
-        <p class="article-byline-meta">Published Mar 15, 2026</p>
+        <p class="article-byline-meta">Apr 27, 2026</p>
       </div>
     </div>
   </header>
 
   <div class="article-body">
-<p>I've read a thousand product docs and written maybe two hundred. Most of them were too long in the wrong places and too short everywhere else.</p>
-<p>The first sign a PRD is going sideways is that you can't summarize it in one breath. If you can't, the reader can't either — and they have seven other tabs open. A good PRD has a <em>shape</em> before it has sentences. You should be able to glance at the first half-screen and know what's going on.</p>
-<blockquote>
-<p>A PRD is a promise about what we'll build and a bet about why it matters. Everything else is scaffolding.</p>
-</blockquote>
-<h2>The silhouette</h2>
-<p>Here's the order I use, and roughly how much space each part deserves. It works whether you're writing four paragraphs or four pages.</p>
+<h2>Steering in large scale codebases</h2>
+<p>Coding agents can one-shot a prototype, but when you're building a production system they need a lot of steering. That steering usually falls into three buckets:</p>
 <ul>
-<li><strong>One-liner.</strong> The product, in a single sentence, to a skeptical reader.</li>
-<li><strong>Why now.</strong> What changed in the world, the market, or our stack.</li>
-<li><strong>Who it's for.</strong> One named user and the problem they keep hitting.</li>
-<li><strong>What we'll build.</strong> A sketch, not a spec. Enough to argue with.</li>
-<li><strong>What we're cutting.</strong> The things a reasonable person would expect but we're choosing not to do.</li>
-<li><strong>How we'll know it worked.</strong> One metric, maybe two. Not six.</li>
+<li><strong>cross-component context</strong>: "after changing ComponentA, go update ComponentB which calls it"</li>
+<li><strong>production requirements</strong>: "add a load balancer here" or "put a cache in front of this"</li>
+<li><strong>confidence checks</strong>: "will this actually hold up at 50 QPS in prod?"</li>
 </ul>
-<p>If a section balloons past its natural weight, something's wrong. A giant <em>What we'll build</em> usually means we're avoiding the <em>Why now</em>. A giant <em>Why now</em> usually means we don't know what to build yet.</p>
-<h2>The non-negotiables</h2>
-<h3>Write it for the person who wasn't in the meeting</h3>
-<p>The best test of a PRD is handing it to a smart engineer who missed the whole kickoff. If they come back with the right questions, the doc is working. If they come back with <em>basic</em> questions, it isn't.</p>
-<h3>Make the cuts visible</h3>
-<p>A <code>Not doing</code> list is worth more than any ambitious scope section. It tells the reader you've actually thought about the thing, and it saves a dozen "what about…" conversations later.</p>
-<h3>One metric, chosen on purpose</h3>
-<p>Teams that pick one metric ship the thing. Teams that pick five ship arguments. If you genuinely need a supporting metric, call it a <em>supporting</em> metric so everyone knows which one we'd fight for.</p>
-<h2>What a PRD is not</h2>
-<p>It isn't a status update. It isn't a design doc. It isn't a sales pitch — though it should be pitchable. And it's not where you go to think; you go somewhere quieter for that and come back with a draft.</p>
-<p>If you remember one thing: a PRD earns its length. Every paragraph should be doing a job. If you can't say what the job is, cut it.</p>
-    <p class="article-end">✦</p>
+<p>The local implementation is often fine. The hard part is transferring full system context and production constraints from your head into the agent’s context, then enforcing them as it builds. After a full day of back-and-forth in the terminal, that overhead starts to feel like its own job. </p>
+<h2>Diagrams: a better interface for system design</h2>
+<p>Whiteboards are a great tool to design complex systems. You can sketch a complete picture of the system, see relationships that are easy to miss in text, and debate specific components in context of the whole system. You usually leave with clear decisions and a coherent architecture. </p>
+<p><img alt="image-20260419152418294" src="../assets/posts/introducing-architect/image-20260419152418294.png" /></p>
+<p><em>A good whiteboard session quickly surfaces the most important design decisions</em></p>
+<h2>Steering agents through diagrams</h2>
+<p>I built the Claude Architect <a href="https://github.com/willhennessy/architect">plugin</a> to make Plan Mode feel more like a whiteboard session. The plugin generates an interactive architecture diagram during Plan Mode so you can review, annotate, and revise the plan with Claude in real time.</p>
+<p><img alt="image-20260421181209598" src="../assets/posts/introducing-architect/image-20260421181209598.png" /></p>
+<p>The steering loop feels like a whiteboard session:</p>
+<ol>
+<li><strong>review the architecture</strong> and see relationships at a glance</li>
+<li><strong>drill down</strong> into containers and components to review each layer</li>
+<li><strong>comment directly</strong> on any node or edge</li>
+<li><strong>review updates</strong> from Claude in response to your comments</li>
+</ol>
+<p>Under the hood, Claude generates a semantic model of the system architecture using the <a href="https://c4model.com/abstractions">C4 model</a>, writes it to structured YAML files, and renders those files in an interactive diagram. Your comments are sent back to Claude through a local <a href="https://code.claude.com/docs/en/channels">Channel</a>, and then Claude updates both the plan and diagram in real time.</p>
+<p>You interact with a visual diagram and Claude reads structured YAML files.</p>
+<h2>Demo</h2>
+<p>Let's walk through a demo. We'll design a new multi-tenant B2B document-signing platform.</p>
+<h3>1. Start planning</h3>
+<p>Switch to Plan Mode and give Claude your requirements. </p>
+<p><img alt="terminal_initial_prompt" src="../assets/posts/introducing-architect/terminal_initial_prompt.png" />Claude writes the plan as usual, and then asks</p>
+<blockquote>
+<p><em>Do you want to review an interactive architecture diagram?</em>
+Yes.</p>
+</blockquote>
+<h3>Review the diagram</h3>
+<p>Claude generates the diagram and opens it in your browser. You can inspect nodes to see more detail, hover over edges to see their function, and drill down into four layers:  context, containers, components, and code.</p>
+<p><img alt="image-20260421181226100" src="../assets/posts/introducing-architect/image-20260421181226100.png" /></p>
+<h3>Comment on the diagram</h3>
+<p>Toggle on Comment mode (C) to add feedback directly to any node or edge in the architecture. Each comment is associated with the element ID so Claude receives your feedback in context.</p>
+<p><img alt="image-20260421181235046" src="../assets/posts/introducing-architect/image-20260421181235046.png" /></p>
+<h3>Claude incorporates your feedback</h3>
+<p>Claude receives your comments through a Channel, processes them in the terminal, updates the plan doc, and re-renders the diagram with your feedback. This isn’t limited to small tweaks either: Claude can add new components, refactor containers, or rewrite the entire system.</p>
+<p><img alt="image-20260421181309313" src="../assets/posts/introducing-architect/image-20260421181309313.png" /></p>
+<p><em>Claude addressed my comment by splitting the webhook worker into a separate container with its own queue budget</em></p>
+<h2>Beyond planning</h2>
+<p>You exit Plan Mode with two durable artifacts.</p>
+<ul>
+<li><strong>Structured YAML files</strong> encode your architecture in an agent-readable format. Next, I'm going to research if these files help agents work more effectively in large scale codebases.</li>
+<li><strong>Visual diagrams</strong> illustrate your architecture in human-readable format to help your teammates operate with the full system in view.</li>
+</ul>
+<p>Text for agents; diagrams for humans.</p>
+<h2>High bandwidth interfaces</h2>
+<p>The design principle behind Architect is to increase the <strong>communication bandwidth</strong> between you and Claude.</p>
+<p>By bandwidth, I mean how much context can flow between the engineer and the agent per unit of effort. Simple projects require very little bandwidth; a short prompt is often enough. Large production systems need much higher bandwidth to communicate system boundaries, production constraints, real-world edge cases, and risks that an experienced engineer knows to look for. </p>
+<p>Architecture diagrams increase read bandwidth. Instead of paging through a long text plan, you can see the system at a glance, understand the major relationships, and spot the high-leverage places to direct your attention with less cognitive load.</p>
+<p>Interactive comments increase write bandwidth. Instead of restating component names in every round of chat, you can comment directly on the node. A fully interactive canvas would unlock even more bandwidth.</p>
+<p>Agents give you leverage, but interfaces determine how much of it you can actually use. Legible plans make the important decisions easier to spot. In-context feedback lowers the friction of steering. The result is a faster, tighter iteration loop between you and Claude.</p>
+<h2>What's next</h2>
+<p>Powerful models have made chat interfaces feel magical, but this prototype was a reminder that interface design still matters because agents perform much better when humans understand the plan and steer it well. Last week's Claude Design launch is another good example of how much interface design can shape agent performance. I expect a lot more experimentation in agent interfaces this year. </p>
+<p>Next, I'll be adding more features and exploring research questions:</p>
+<ol>
+<li>What parts of Plan Mode are better done in a diagram vs. a text doc?</li>
+<li>Does the codified architecture model help coding agents operate more effectively in large codebases by providing a high level map of the system? </li>
+<li>Can we use the architecture model to establish useful guardrails that mitigate architecture drift as agents operate in large codebases?</li>
+</ol>
+<h2>Try it out</h2>
+<p>Install the <a href="https://github.com/willhennessy/architect/tree/main">architect plugin</a>:</p>
+<pre><code class="language-bash">claude plugin marketplace add https://github.com/willhennessy/architect.git
+claude plugin install architect@plugins
+</code></pre>
+<p>Run Claude with a flag to enable the comments <a href="https://code.claude.com/docs/en/channels">Channel</a>:</p>
+<pre><code class="language-bash">claude --dangerously-load-development-channels plugin:architect@plugins
+</code></pre>
+<p>Then switch to plan mode and invoke the architect skill:</p>
+<pre><code class="language-bash">/architect:plan &lt;prompt&gt;
+</code></pre>
+<p>If you want to generate a diagram for your existing codebase, run <code>/architect:init</code></p>
+<p>I'd love to <a href="https://x.com/WillHennessy_">hear your feedback</a>. How accurate was the architecture? What comments did you give Claude? What features do you want to see next?</p>
   </div>
 
-  
+  <nav class="article-nav" aria-label="More writing">
+    <a class="article-nav-link prev" href="designing-agent-loops.html"><span class="article-nav-label">← Previous</span><p class="article-nav-title">Designing Agent Loops for Human Taste</p></a>
+    <span></span>
+  </nav>
 
 </article>
 
-<footer class="footer" style="max-width: 680px; margin: 0 auto; padding: 0 32px 64px;">
+<footer class="footer" style="max-width: 680px; margin: 0 auto; padding-left: 32px; padding-right: 32px; padding-bottom: 32px;">
   <div>© 2026 Will Hennessy</div>
   <div class="footer-social">
     <a href="https://x.com/WillHennessy_">Twitter</a>

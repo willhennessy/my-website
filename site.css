@@ -102,7 +102,14 @@
 /* ── Section basics ───────────────────────────────────────────────────── */
 .section { padding: 14px 0; }
 @media (min-width: 720px) { .section { padding: 16px 0; } }
-.section + .section { border-top: 1px solid var(--color-border-subtle); }
+/* Add 4px between sections without touching the top of the first one.
+   Writing gets 8px extra padding-bottom for breathing room before Projects. */
+.section + .section { padding-top: 18px; }
+.section.writing { padding-bottom: 26px; }
+@media (min-width: 720px) {
+  .section + .section { padding-top: 20px; }
+  .section.writing { padding-bottom: 28px; }
+}
 
 .section-head {
   display: flex; align-items: baseline; gap: 16px;
@@ -216,7 +223,10 @@
   .writing-link { grid-template-columns: 1fr auto; gap: 4px 12px; }
   .writing-date { width: auto; grid-column: 1; grid-row: 1; }
   .writing-arrow { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
-  .writing-title { grid-column: 1 / -1; }
+  /* Title and meta are wrapped in an unclassed <div>, which is the actual
+     grid item. Span it across both columns so titles wrap against the full
+     width instead of an auto-sized column that swings with content length. */
+  .writing-link > div { grid-column: 1 / -1; grid-row: 2; }
 }
 
 /* ── Projects grid ────────────────────────────────────────────────────── */
@@ -331,7 +341,7 @@
 /* ── Footer ───────────────────────────────────────────────────────────── */
 .footer {
   margin-top: 80px;
-  padding-top: 32px;
+  padding-top: 28px;
   border-top: 1px solid var(--color-border-subtle);
   display: flex; justify-content: space-between; align-items: center;
   flex-wrap: wrap; gap: 16px;
@@ -339,7 +349,7 @@
   color: var(--color-text-muted);
 }
 .footer a {
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   text-decoration: none;
   border-bottom: 1px solid transparent;
   padding-bottom: 1px;
@@ -548,9 +558,9 @@
 .article {
   max-width: 680px;
   margin: 0 auto;
-  padding: 32px 20px 140px;
+  padding: 32px 20px 64px;
 }
-@media (min-width: 720px) { .article { padding: 48px 48px 160px; } }
+@media (min-width: 720px) { .article { padding: 48px 24px 80px; } }
 .article-back {
   display: inline-flex; align-items: center; gap: 8px;
   font-family: var(--font-mono);
@@ -579,21 +589,21 @@
   font-family: "Instrument Sans", var(--font-sans);
   font-style: normal;
   font-weight: 400;
-  font-size: clamp(40px, 6vw, 64px);
+  font-size: 48px;
   letter-spacing: -0.025em;
   line-height: 1.05;
   margin: 0 0 24px;
   text-wrap: balance;
 }
 .article-lede {
-  font-size: 22px;
+  font-size: 20px;
   line-height: 1.5;
-  color: var(--color-text-secondary);
-  margin: 0 0 48px;
+  color: var(--color-text-tertiary);
+  margin: 0 0 32px;
   text-wrap: pretty;
 }
 .article-body {
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1.7;
   color: var(--color-text-secondary);
 }
@@ -952,14 +962,6 @@
 .article-body a:hover { background: color-mix(in srgb, var(--color-brand) 14%, transparent); }
 
 /* Article footer / colophon */
-.article-end {
-  margin: 72px 0 16px;
-  text-align: center;
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 26px;
-  color: var(--color-text-muted);
-}
 .article-colophon {
   margin: 48px 0 0;
   padding-top: 28px;
@@ -982,34 +984,13 @@
 }
 .article-colophon a:hover { color: var(--color-text-primary); border-bottom-color: var(--color-brand); }
 
-/* Tags */
-.article-tags {
-  display: flex; flex-wrap: wrap; gap: 6px;
-  margin: 0 0 28px;
-}
-.article-tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: var(--radius-pill);
-  background: var(--color-pill-active-bg);
-  color: var(--color-text-tertiary);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  text-decoration: none;
-}
-.article-tag:hover { background: var(--color-hover-bg); color: var(--color-text-primary); }
-
 /* Author byline */
 .article-byline {
   display: flex;
   align-items: center;
   gap: 12px;
   margin: 0 0 40px;
-  padding: 16px 0;
-  border-top: 1px solid var(--color-border-subtle);
+  padding: 0 0 16px;
   border-bottom: 1px solid var(--color-border-subtle);
 }
 .article-byline-avatar {
