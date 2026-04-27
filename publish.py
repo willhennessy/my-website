@@ -146,11 +146,22 @@ def format_long_date(date_str: str) -> str:
 # An italic-only line immediately after an image becomes the image's caption.
 # Tolerates one optional blank line between the two for readability.
 MD_IMAGE_LINE_RE = re.compile(
-    r"^\s*!\[([^\]]*)\]\(\s*(.+?)(?:\s+\"([^\"]*)\")?\s*\)\s*$"
+    r"^\s*!\[([^\]]*)\]\(\s*(.+?)(?:\s+\"([^\"]*)\")?\s*\)(?:\{([^}]*)\})?\s*$"
 )
 ITALIC_LINE_RE = re.compile(
     r"^\s*(?:\*([^*\n]+?)\*|_([^_\n]+?)_)\s*$"
 )
+_CLASS_TOKEN_RE = re.compile(r"^[A-Za-z_][\w-]*$")
+
+
+def _parse_attr_classes(raw: str | None) -> str:
+    if not raw:
+        return ""
+    classes = [
+        t[1:] for t in raw.split()
+        if t.startswith(".") and len(t) > 1 and _CLASS_TOKEN_RE.match(t[1:])
+    ]
+    return " ".join(classes)
 
 
 def attach_image_captions(md_text: str) -> str:
@@ -160,26 +171,38 @@ def attach_image_captions(md_text: str) -> str:
     while i < len(lines):
         img = MD_IMAGE_LINE_RE.match(lines[i])
         if img:
+            alt = img.group(1).replace('"', '&quot;')
+            src = img.group(2)
+            title = img.group(3)
+            classes = _parse_attr_classes(img.group(4))
+            title_attr = f' title="{title}"' if title else ""
+            class_attr = f' class="{classes}"' if classes else ""
+
             j = i + 1
             if j < len(lines) and lines[j].strip() == "":
                 j += 1
             cap = ITALIC_LINE_RE.match(lines[j]) if j < len(lines) else None
+
             if cap:
-                alt = img.group(1).replace('"', '&quot;')
-                src = img.group(2)
-                title = img.group(3)
                 caption = cap.group(1) or cap.group(2)
-                title_attr = f' title="{title}"' if title else ""
                 if out and out[-1].strip():
                     out.append("")
                 out.append(
                     f'<figure>'
-                    f'<img src="{src}" alt="{alt}"{title_attr}>'
+                    f'<img src="{src}" alt="{alt}"{title_attr}{class_attr}>'
                     f'<figcaption>{render_inline(caption)}</figcaption>'
                     f'</figure>'
                 )
                 out.append("")
                 i = j + 1
+                continue
+
+            if classes:
+                if out and out[-1].strip():
+                    out.append("")
+                out.append(f'<img src="{src}" alt="{alt}"{title_attr}{class_attr}>')
+                out.append("")
+                i += 1
                 continue
         out.append(lines[i])
         i += 1
