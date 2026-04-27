@@ -2364,7 +2364,7 @@
       <div id="sidebarStatusRegion" class="sidebar-status-region" hidden></div>
       <div id="sidebarBody" class="sidebar-body"><div class="empty-state"><p>Click a component to inspect details</p></div></div>
       <footer id="sidebarFooter" class="sidebar-footer" hidden>
-        <button id="submitBtn" class="btn-submit-comments" type="button" disabled>Submit 0 comments</button>
+        <button id="submitBtn" class="btn-submit-comments" type="button" disabled>Run locally to send to Claude</button>
       </footer>
     </aside>
   </div>
@@ -6945,8 +6945,8 @@ function submitButtonLabel() {
 function updateSubmitButton() {
   const submitBtn = $('submitBtn');
   if (!submitBtn) return;
-  submitBtn.textContent = submitButtonLabel();
-  submitBtn.disabled = state.comments.length === 0 || state.submitInFlight || isJobHandlingInProgress(state.activeJob);
+  submitBtn.textContent = 'Run locally to send to Claude';
+  submitBtn.disabled = true;
 }
 
 function isCommentEditingLocked() {
