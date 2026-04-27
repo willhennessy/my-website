@@ -8,7 +8,7 @@ description: The Claude Architect plugin adds an interactive architecture diagra
 lede: Make Plan Mode feel like a whiteboard session
 ---
 
-## Steering in large scale codebases
+## Steering agents in production systems
 
 Coding agents can one-shot a prototype, but when you're building a production system they need a lot of steering. That steering usually falls into three buckets:
 
@@ -30,7 +30,7 @@ Whiteboards are a great tool to design complex systems. You can sketch a complet
 
 I built the Claude Architect [plugin](https://github.com/willhennessy/architect) to make Plan Mode feel more like a whiteboard session. The plugin generates an interactive architecture diagram during Plan Mode so you can review, annotate, and revise the plan with Claude in real time.
 
-![image-20260421181209598](../assets/posts/introducing-architect/image-20260421181209598.png)
+![image-20260421181209598](../assets/posts/introducing-architect/image-20260421181209598.png){.no-border}
 
 The steering loop feels like a whiteboard session:
 
@@ -51,7 +51,7 @@ Let's walk through a demo. We'll design a new multi-tenant B2B document-signing 
 
 Switch to Plan Mode and give Claude your requirements. 
 
-![terminal_initial_prompt](../assets/posts/introducing-architect/terminal_initial_prompt.png)Claude writes the plan as usual, and then asks
+![terminal_initial_prompt](../assets/posts/introducing-architect/terminal_initial_prompt.png){.no-border}Claude writes the plan as usual, and then asks
 
 > *Do you want to review an interactive architecture diagram?*
 
@@ -68,13 +68,13 @@ Claude generates the diagram and opens it in your browser. You can inspect nodes
 
 Toggle on Comment mode \(C) to add feedback directly to any node or edge in the architecture. Each comment is associated with the element ID so Claude receives your feedback in context.
 
-![image-20260421181235046](../assets/posts/introducing-architect/image-20260421181235046.png)
+![image-20260421181235046](../assets/posts/introducing-architect/image-20260421181235046.png){.no-border}
 
 ### Claude incorporates your feedback
 
 Claude receives your comments through a Channel, processes them in the terminal, updates the plan doc, and re-renders the diagram with your feedback. This isn’t limited to small tweaks either: Claude can add new components, refactor containers, or rewrite the entire system.
 
-![image-20260421181309313](../assets/posts/introducing-architect/image-20260421181309313.png)
+![image-20260421181309313](../assets/posts/introducing-architect/image-20260421181309313.png){.no-border}
 
 *Claude addressed my comment by splitting the webhook worker into a separate container with its own queue budget*
 
@@ -89,7 +89,7 @@ Text for agents; diagrams for humans.
 
 ## High bandwidth interfaces
 
-The design principle behind Architect is to increase the **communication bandwidth** between you and Claude.
+The [design principle](https://willhennessy.io/writing/designing-agent-loops.html) behind Architect is to increase the **communication bandwidth** between you and Claude.
 
 By bandwidth, I mean how much context can flow between the engineer and the agent per unit of effort. Simple projects require very little bandwidth; a short prompt is often enough. Large production systems need much higher bandwidth to communicate system boundaries, production constraints, real-world edge cases, and risks that an experienced engineer knows to look for. 
 

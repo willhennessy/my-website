@@ -98,7 +98,7 @@
   </header>
 
   <div class="article-body">
-<h2>Steering in large scale codebases</h2>
+<h2>Steering agents in production systems</h2>
 <p>Coding agents can one-shot a prototype, but when you're building a production system they need a lot of steering. That steering usually falls into three buckets:</p>
 <ul>
 <li><strong>cross-component context</strong>: "after changing Component A, go update Component B which calls it"</li>
@@ -112,7 +112,7 @@
 
 <h2>Steering agents through diagrams</h2>
 <p>I built the Claude Architect <a href="https://github.com/willhennessy/architect">plugin</a> to make Plan Mode feel more like a whiteboard session. The plugin generates an interactive architecture diagram during Plan Mode so you can review, annotate, and revise the plan with Claude in real time.</p>
-<p><img alt="image-20260421181209598" src="../assets/posts/introducing-architect/image-20260421181209598.png" /></p>
+<p><img src="../assets/posts/introducing-architect/image-20260421181209598.png" alt="image-20260421181209598" class="no-border"></p>
 <p>The steering loop feels like a whiteboard session:</p>
 <ol>
 <li><strong>review the architecture</strong> and see relationships at a glance</li>
@@ -126,7 +126,7 @@
 <p>Let's walk through a demo. We'll design a new multi-tenant B2B document-signing platform.</p>
 <h3>1. Start planning</h3>
 <p>Switch to Plan Mode and give Claude your requirements. </p>
-<p><img alt="terminal_initial_prompt" src="../assets/posts/introducing-architect/terminal_initial_prompt.png" />Claude writes the plan as usual, and then asks</p>
+<p><img alt="terminal_initial_prompt" class="no-border" src="../assets/posts/introducing-architect/terminal_initial_prompt.png" />Claude writes the plan as usual, and then asks</p>
 <blockquote>
 <p><em>Do you want to review an interactive architecture diagram?</em></p>
 </blockquote>
@@ -136,10 +136,10 @@
 <p><img alt="image-20260421181226100" src="../assets/posts/introducing-architect/image-20260421181226100.png" /></p>
 <h3>Comment on the diagram</h3>
 <p>Toggle on Comment mode (C) to add feedback directly to any node or edge in the architecture. Each comment is associated with the element ID so Claude receives your feedback in context.</p>
-<p><img alt="image-20260421181235046" src="../assets/posts/introducing-architect/image-20260421181235046.png" /></p>
+<p><img src="../assets/posts/introducing-architect/image-20260421181235046.png" alt="image-20260421181235046" class="no-border"></p>
 <h3>Claude incorporates your feedback</h3>
 <p>Claude receives your comments through a Channel, processes them in the terminal, updates the plan doc, and re-renders the diagram with your feedback. This isn’t limited to small tweaks either: Claude can add new components, refactor containers, or rewrite the entire system.</p>
-<figure><img src="../assets/posts/introducing-architect/image-20260421181309313.png" alt="image-20260421181309313"><figcaption>Claude addressed my comment by splitting the webhook worker into a separate container with its own queue budget</figcaption></figure>
+<figure><img src="../assets/posts/introducing-architect/image-20260421181309313.png" alt="image-20260421181309313" class="no-border"><figcaption>Claude addressed my comment by splitting the webhook worker into a separate container with its own queue budget</figcaption></figure>
 
 <h2>Beyond planning</h2>
 <p>You exit Plan Mode with two durable artifacts.</p>
@@ -149,7 +149,7 @@
 </ul>
 <p>Text for agents; diagrams for humans.</p>
 <h2>High bandwidth interfaces</h2>
-<p>The design principle behind Architect is to increase the <strong>communication bandwidth</strong> between you and Claude.</p>
+<p>The <a href="https://willhennessy.io/writing/designing-agent-loops.html">design principle</a> behind Architect is to increase the <strong>communication bandwidth</strong> between you and Claude.</p>
 <p>By bandwidth, I mean how much context can flow between the engineer and the agent per unit of effort. Simple projects require very little bandwidth; a short prompt is often enough. Large production systems need much higher bandwidth to communicate system boundaries, production constraints, real-world edge cases, and risks that an experienced engineer knows to look for. </p>
 <p>Architecture diagrams increase read bandwidth. Instead of paging through a long text plan, you can see the system at a glance, understand the major relationships, and spot the high-leverage places to direct your attention with less cognitive load.</p>
 <p>Interactive comments increase write bandwidth. Instead of restating component names in every round of chat, you can comment directly on the node. A fully interactive canvas would unlock even more bandwidth.</p>
