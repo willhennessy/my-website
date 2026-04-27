@@ -12,8 +12,8 @@ lede: Make Plan Mode feel like a whiteboard session
 
 Coding agents can one-shot a prototype, but when you're building a production system they need a lot of steering. That steering usually falls into three buckets:
 
-  - **cross-component context**: "after changing Component A, go update Component B which calls it"
-  - **production requirements**: "add a load balancer here" or "put a cache in front of this"
+  - **cross-component context**: "after refactoring Component A, go update Component B which calls it"
+  - **production requirements**: "add a load balancer here" or "put a cache there"
   - **confidence checks**: "will this actually hold up at 50 QPS in prod?"
 
 The local implementation is often fine, but steering is needed to transfer full system context and production constraints from your head into the agent’s plan. After a full day of back-and-forth in the terminal, that overhead starts to feel like its own job. 

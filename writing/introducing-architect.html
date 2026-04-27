@@ -101,8 +101,8 @@
 <h2>Steering agents in production systems</h2>
 <p>Coding agents can one-shot a prototype, but when you're building a production system they need a lot of steering. That steering usually falls into three buckets:</p>
 <ul>
-<li><strong>cross-component context</strong>: "after changing Component A, go update Component B which calls it"</li>
-<li><strong>production requirements</strong>: "add a load balancer here" or "put a cache in front of this"</li>
+<li><strong>cross-component context</strong>: "after refactoring Component A, go update Component B which calls it"</li>
+<li><strong>production requirements</strong>: "add a load balancer here" or "put a cache there"</li>
 <li><strong>confidence checks</strong>: "will this actually hold up at 50 QPS in prod?"</li>
 </ul>
 <p>The local implementation is often fine, but steering is needed to transfer full system context and production constraints from your head into the agent’s plan. After a full day of back-and-forth in the terminal, that overhead starts to feel like its own job. </p>
