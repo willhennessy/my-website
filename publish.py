@@ -8,7 +8,9 @@ Source of truth lives at /Users/will/code/writing/publish/. This script:
   2. For each qualifying source, copies the markdown into `posts/<slug>.md`
      and copies any referenced images into `assets/posts/<slug>/`, rewriting
      image paths in the markdown so they resolve from `writing/<slug>.html`.
-  3. Renders each post into `writing/<slug>.html` and regenerates `index.html`.
+  3. Renders each post into `writing/<slug>.html`.
+
+`index.html` is hand-maintained — add new posts to the writing list there.
 
 Posts in `posts/` whose slugs don't appear in the source tree are left alone
 (non-destructive). To remove one, delete it manually.
@@ -58,7 +60,6 @@ ASSETS_POSTS_DIR = ROOT / "assets" / "posts"  # post images (derived)
 TEMPLATES_DIR = ROOT / "templates"
 
 POST_TEMPLATE = (TEMPLATES_DIR / "post.html").read_text()
-INDEX_TEMPLATE = (TEMPLATES_DIR / "index.html").read_text()
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -427,37 +428,6 @@ def build_post(post: dict, prev: dict | None, nxt: dict | None) -> Path:
     return out_path
 
 
-def build_writing_list(posts: list[dict]) -> str:
-    if not posts:
-        return '      <li class="writing-empty"><p>More writing coming soon.</p></li>'
-    rows = []
-    for post in posts:
-        meta_parts = [post["read_time"]]
-        if post.get("category"):
-            meta_parts.append(post["category"])
-        meta_line = " · ".join(meta_parts)
-        rows.append(
-            f'      <li class="writing-item">\n'
-            f'        <a class="writing-link" href="writing/{post["slug"]}.html">\n'
-            f'          <span class="writing-date">{format_month_year(post["date"])}</span>\n'
-            f'          <div>\n'
-            f'            <p class="writing-title">{render_inline(post["title"])}</p>\n'
-            f'            <p class="writing-meta">{meta_line}</p>\n'
-            f'          </div>\n'
-            f'          <svg class="writing-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>\n'
-            f'        </a>\n'
-            f'      </li>'
-        )
-    return "\n".join(rows)
-
-
-def build_index(posts: list[dict]) -> Path:
-    html = fill(INDEX_TEMPLATE, {"writing_list": build_writing_list(posts)})
-    out_path = ROOT / "index.html"
-    out_path.write_text(html)
-    return out_path
-
-
 # ──────────────────────────────────────────────────────────────────────────────
 # Main
 # ──────────────────────────────────────────────────────────────────────────────
@@ -494,12 +464,6 @@ def main() -> None:
         prev = posts[i + 1] if i + 1 < len(posts) else None
         out = build_post(post, prev=prev, nxt=nxt)
         print(f"  wrote {out.relative_to(ROOT)}")
-
-    out = build_index(posts)
-    print(
-        f"  wrote {out.relative_to(ROOT)}  "
-        f"({len(posts)} post{'s' if len(posts) != 1 else ''})"
-    )
 
 
 if __name__ == "__main__":

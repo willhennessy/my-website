@@ -11,15 +11,14 @@ Static personal site for `willhennessy.io`.
 ## Repo layout
 
 ```
-index.html               # generated — site landing page
+index.html               # site landing page (hand-edited)
 tokens.css, site.css     # design tokens + styles (hand-edit these)
 assets/                  # images
 posts/                   # blog posts in markdown (write here)
 writing/                 # generated HTML for each post
 templates/
-  index.html             # source template for index.html
   post.html              # source template for each post
-build.py                 # markdown → HTML build
+publish.py               # markdown → HTML build
 ```
 
 ## Writing a new post
@@ -47,10 +46,12 @@ build.py                 # markdown → HTML build
 
    ```bash
    pip3 install --user markdown   # one-time
-   python3 build.py
+   python3 publish.py
    ```
 
-3. Commit `posts/<slug>.md`, the generated `writing/<slug>.html`, and the
+3. Add a new entry to the writing list in `index.html` (hand-edited).
+
+4. Commit `posts/<slug>.md`, the generated `writing/<slug>.html`, and the
    updated `index.html`.
 
 ## Local preview
