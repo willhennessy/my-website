@@ -12,11 +12,11 @@ lede: Make Plan Mode feel like a whiteboard session
 
 Coding agents can one-shot a prototype, but when you're building a production system they need a lot of steering. That steering usually falls into three buckets:
 
-  - **cross-component context**: "after changing ComponentA, go update ComponentB which calls it"
+  - **cross-component context**: "after changing Component A, go update Component B which calls it"
   - **production requirements**: "add a load balancer here" or "put a cache in front of this"
   - **confidence checks**: "will this actually hold up at 50 QPS in prod?"
 
-The local implementation is often fine. The hard part is transferring full system context and production constraints from your head into the agent’s context, then enforcing them as it builds. After a full day of back-and-forth in the terminal, that overhead starts to feel like its own job. 
+The local implementation is often fine, but steering is needed to transfer full system context and production constraints from your head into the agent’s plan. After a full day of back-and-forth in the terminal, that overhead starts to feel like its own job. 
 
 ## Diagrams: a better interface for system design
 
@@ -54,7 +54,8 @@ Switch to Plan Mode and give Claude your requirements.
 ![terminal_initial_prompt](../assets/posts/introducing-architect/terminal_initial_prompt.png)Claude writes the plan as usual, and then asks
 
 > *Do you want to review an interactive architecture diagram?*
-> Yes.
+
+Yes.
 
 
 ### Review the diagram

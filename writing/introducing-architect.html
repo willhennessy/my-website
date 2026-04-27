@@ -95,15 +95,15 @@
 <h2>Steering in large scale codebases</h2>
 <p>Coding agents can one-shot a prototype, but when you're building a production system they need a lot of steering. That steering usually falls into three buckets:</p>
 <ul>
-<li><strong>cross-component context</strong>: "after changing ComponentA, go update ComponentB which calls it"</li>
+<li><strong>cross-component context</strong>: "after changing Component A, go update Component B which calls it"</li>
 <li><strong>production requirements</strong>: "add a load balancer here" or "put a cache in front of this"</li>
 <li><strong>confidence checks</strong>: "will this actually hold up at 50 QPS in prod?"</li>
 </ul>
-<p>The local implementation is often fine. The hard part is transferring full system context and production constraints from your head into the agent’s context, then enforcing them as it builds. After a full day of back-and-forth in the terminal, that overhead starts to feel like its own job. </p>
+<p>The local implementation is often fine, but steering is needed to transfer full system context and production constraints from your head into the agent’s plan. After a full day of back-and-forth in the terminal, that overhead starts to feel like its own job. </p>
 <h2>Diagrams: a better interface for system design</h2>
 <p>Whiteboards are a great tool to design complex systems. You can sketch a complete picture of the system, see relationships that are easy to miss in text, and debate specific components in context of the whole system. You usually leave with clear decisions and a coherent architecture. </p>
-<p><img alt="image-20260419152418294" src="../assets/posts/introducing-architect/image-20260419152418294.png" /></p>
-<p><em>A good whiteboard session quickly surfaces the most important design decisions</em></p>
+<figure><img src="../assets/posts/introducing-architect/image-20260419152418294.png" alt="image-20260419152418294"><figcaption>A good whiteboard session quickly surfaces the most important design decisions</figcaption></figure>
+
 <h2>Steering agents through diagrams</h2>
 <p>I built the Claude Architect <a href="https://github.com/willhennessy/architect">plugin</a> to make Plan Mode feel more like a whiteboard session. The plugin generates an interactive architecture diagram during Plan Mode so you can review, annotate, and revise the plan with Claude in real time.</p>
 <p><img alt="image-20260421181209598" src="../assets/posts/introducing-architect/image-20260421181209598.png" /></p>
@@ -122,9 +122,9 @@
 <p>Switch to Plan Mode and give Claude your requirements. </p>
 <p><img alt="terminal_initial_prompt" src="../assets/posts/introducing-architect/terminal_initial_prompt.png" />Claude writes the plan as usual, and then asks</p>
 <blockquote>
-<p><em>Do you want to review an interactive architecture diagram?</em>
-Yes.</p>
+<p><em>Do you want to review an interactive architecture diagram?</em></p>
 </blockquote>
+<p>Yes.</p>
 <h3>Review the diagram</h3>
 <p>Claude generates the diagram and opens it in your browser. You can inspect nodes to see more detail, hover over edges to see their function, and drill down into four layers:  context, containers, components, and code.</p>
 <p><img alt="image-20260421181226100" src="../assets/posts/introducing-architect/image-20260421181226100.png" /></p>
@@ -133,8 +133,8 @@ Yes.</p>
 <p><img alt="image-20260421181235046" src="../assets/posts/introducing-architect/image-20260421181235046.png" /></p>
 <h3>Claude incorporates your feedback</h3>
 <p>Claude receives your comments through a Channel, processes them in the terminal, updates the plan doc, and re-renders the diagram with your feedback. This isn’t limited to small tweaks either: Claude can add new components, refactor containers, or rewrite the entire system.</p>
-<p><img alt="image-20260421181309313" src="../assets/posts/introducing-architect/image-20260421181309313.png" /></p>
-<p><em>Claude addressed my comment by splitting the webhook worker into a separate container with its own queue budget</em></p>
+<figure><img src="../assets/posts/introducing-architect/image-20260421181309313.png" alt="image-20260421181309313"><figcaption>Claude addressed my comment by splitting the webhook worker into a separate container with its own queue budget</figcaption></figure>
+
 <h2>Beyond planning</h2>
 <p>You exit Plan Mode with two durable artifacts.</p>
 <ul>

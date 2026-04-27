@@ -143,7 +143,51 @@ def format_long_date(date_str: str) -> str:
     return d.strftime("%b %d, %Y")
 
 
+# An italic-only line immediately after an image becomes the image's caption.
+# Tolerates one optional blank line between the two for readability.
+MD_IMAGE_LINE_RE = re.compile(
+    r"^\s*!\[([^\]]*)\]\(\s*(.+?)(?:\s+\"([^\"]*)\")?\s*\)\s*$"
+)
+ITALIC_LINE_RE = re.compile(
+    r"^\s*(?:\*([^*\n]+?)\*|_([^_\n]+?)_)\s*$"
+)
+
+
+def attach_image_captions(md_text: str) -> str:
+    lines = md_text.split("\n")
+    out: list[str] = []
+    i = 0
+    while i < len(lines):
+        img = MD_IMAGE_LINE_RE.match(lines[i])
+        if img:
+            j = i + 1
+            if j < len(lines) and lines[j].strip() == "":
+                j += 1
+            cap = ITALIC_LINE_RE.match(lines[j]) if j < len(lines) else None
+            if cap:
+                alt = img.group(1).replace('"', '&quot;')
+                src = img.group(2)
+                title = img.group(3)
+                caption = cap.group(1) or cap.group(2)
+                title_attr = f' title="{title}"' if title else ""
+                if out and out[-1].strip():
+                    out.append("")
+                out.append(
+                    f'<figure>'
+                    f'<img src="{src}" alt="{alt}"{title_attr}>'
+                    f'<figcaption>{render_inline(caption)}</figcaption>'
+                    f'</figure>'
+                )
+                out.append("")
+                i = j + 1
+                continue
+        out.append(lines[i])
+        i += 1
+    return "\n".join(out)
+
+
 def render_body(md_text: str) -> str:
+    md_text = attach_image_captions(md_text)
     md = markdown.Markdown(
         extensions=["extra", "sane_lists", "smarty"],
         extension_configs={"smarty": {"smart_dashes": True, "smart_quotes": False}},
