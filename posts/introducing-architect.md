@@ -20,7 +20,9 @@ The local implementation is often fine, but steering is needed to transfer full 
 
 ## Diagrams: a better interface for system design
 
-Whiteboards are a great tool to design complex systems. You can sketch a complete picture of the system, see relationships that are easy to miss in text, and debate specific components in context of the whole system. You usually leave with clear decisions and a coherent architecture. 
+What if Plan Mode felt more like a whiteboard session?
+
+Whiteboards are a great tool for system design because you can quickly grok the entire architecture, spot relationships that are easy to miss in text, and debate specific components in context of the whole system. They result in clear decisions and usually leave you feeling energized.
 
 ![image-20260419152418294](../assets/posts/introducing-architect/image-20260419152418294.png)
 
@@ -39,7 +41,7 @@ The steering loop feels like a whiteboard session:
 3. **comment directly** on any node or edge
 4. **review updates** from Claude in response to your comments
 
-Under the hood, Claude generates a semantic model of the system architecture using the [C4 model](https://c4model.com/abstractions), writes it to structured YAML files, and renders those files in an interactive diagram. Your comments are sent back to Claude through a local [Channel](https://code.claude.com/docs/en/channels), and then Claude updates both the plan and diagram in real time.
+Under the hood, Claude builds a semantic model of the system architecture using the [C4 model](https://c4model.com/abstractions), writes it to structured YAML files, and renders those files in an interactive diagram. Your comments are sent back to Claude through a local [Channel](https://code.claude.com/docs/en/channels), and then Claude updates both the plan and diagram in real time.
 
 You interact with a visual diagram and Claude reads structured YAML files.
 
@@ -61,6 +63,8 @@ Yes.
 ### Review the diagram
 
 Claude generates the diagram and opens it in your browser. You can inspect nodes to see more detail, hover over edges to see their function, and drill down into four layers:  context, containers, components, and code.
+
+Try the [live demo](https://willhennessy.io/demos/architect/document-signing) for yourself!
 
 ![image-20260421181226100](../assets/posts/introducing-architect/image-20260421181226100.png)
 
@@ -130,6 +134,6 @@ Then switch to plan mode and invoke the architect skill:
 /architect:plan <prompt>
 ```
 
-If you want to generate a diagram for your existing codebase, run `/architect:init`
+Or generate a diagram for your existing codebase with `/architect:init`
 
 I'd love to [hear your feedback](https://x.com/WillHennessy_). How accurate was the architecture? What comments did you give Claude? What features do you want to see next?

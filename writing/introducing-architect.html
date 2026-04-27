@@ -107,7 +107,8 @@
 </ul>
 <p>The local implementation is often fine, but steering is needed to transfer full system context and production constraints from your head into the agent’s plan. After a full day of back-and-forth in the terminal, that overhead starts to feel like its own job. </p>
 <h2>Diagrams: a better interface for system design</h2>
-<p>Whiteboards are a great tool to design complex systems. You can sketch a complete picture of the system, see relationships that are easy to miss in text, and debate specific components in context of the whole system. You usually leave with clear decisions and a coherent architecture. </p>
+<p>What if Plan Mode felt more like a whiteboard session?</p>
+<p>Whiteboards are a great tool for system design because you can quickly grok the entire architecture, spot relationships that are easy to miss in text, and debate specific components in context of the whole system. They result in clear decisions and usually leave you feeling energized.</p>
 <figure><img src="../assets/posts/introducing-architect/image-20260419152418294.png" alt="image-20260419152418294"><figcaption>A good whiteboard session quickly surfaces the most important design decisions</figcaption></figure>
 
 <h2>Steering agents through diagrams</h2>
@@ -120,7 +121,7 @@
 <li><strong>comment directly</strong> on any node or edge</li>
 <li><strong>review updates</strong> from Claude in response to your comments</li>
 </ol>
-<p>Under the hood, Claude generates a semantic model of the system architecture using the <a href="https://c4model.com/abstractions">C4 model</a>, writes it to structured YAML files, and renders those files in an interactive diagram. Your comments are sent back to Claude through a local <a href="https://code.claude.com/docs/en/channels">Channel</a>, and then Claude updates both the plan and diagram in real time.</p>
+<p>Under the hood, Claude builds a semantic model of the system architecture using the <a href="https://c4model.com/abstractions">C4 model</a>, writes it to structured YAML files, and renders those files in an interactive diagram. Your comments are sent back to Claude through a local <a href="https://code.claude.com/docs/en/channels">Channel</a>, and then Claude updates both the plan and diagram in real time.</p>
 <p>You interact with a visual diagram and Claude reads structured YAML files.</p>
 <h2>Demo</h2>
 <p>Let's walk through a demo. We'll design a new multi-tenant B2B document-signing platform.</p>
@@ -133,6 +134,7 @@
 <p>Yes.</p>
 <h3>Review the diagram</h3>
 <p>Claude generates the diagram and opens it in your browser. You can inspect nodes to see more detail, hover over edges to see their function, and drill down into four layers:  context, containers, components, and code.</p>
+<p>Try the <a href="https://willhennessy.io/demos/architect/document-signing">live demo</a> for yourself!</p>
 <p><img alt="image-20260421181226100" src="../assets/posts/introducing-architect/image-20260421181226100.png" /></p>
 <h3>Comment on the diagram</h3>
 <p>Toggle on Comment mode (C) to add feedback directly to any node or edge in the architecture. Each comment is associated with the element ID so Claude receives your feedback in context.</p>
@@ -173,7 +175,7 @@ claude plugin install architect@plugins
 <p>Then switch to plan mode and invoke the architect skill:</p>
 <pre><code class="language-bash">/architect:plan &lt;prompt&gt;
 </code></pre>
-<p>If you want to generate a diagram for your existing codebase, run <code>/architect:init</code></p>
+<p>Or generate a diagram for your existing codebase with <code>/architect:init</code></p>
 <p>I'd love to <a href="https://x.com/WillHennessy_">hear your feedback</a>. How accurate was the architecture? What comments did you give Claude? What features do you want to see next?</p>
   </div>
 
