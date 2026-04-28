@@ -45,7 +45,7 @@
     <ul class="topnav-links">
       <li><a class="topnav-link" href="#about">About</a></li>
       <li><a class="topnav-link" href="#writing">Writing</a></li>
-      <li hidden><a class="topnav-link" href="#projects">Projects</a></li>
+      <li><a class="topnav-link" href="#projects">Projects</a></li>
     </ul>
     <button
       id="themeToggle"
@@ -126,22 +126,77 @@
     </ul>
   </section>
 
-  <section class="section projects" id="projects" hidden>
+  <section class="section projects" id="projects">
     <h2 class="section-title">Projects</h2>
 
     <div class="projects-grid" style="margin-top:40px;">
-      <a class="project-card" data-tag="Plugin" href="#" style="--thumb-a: var(--color-element-teal); --thumb-b: var(--color-element-sage); --thumb-ink: var(--color-element-teal);">
+      <a class="project-card" data-tag="Plugin" href="https://github.com/willhennessy/architect" target="_blank" rel="noopener" style="--thumb-a: var(--color-element-teal); --thumb-b: var(--color-element-sage); --thumb-ink: var(--color-element-teal);">
         <div class="project-thumb">
+          <img class="project-thumb-image" src="assets/projects/architect.jpg" alt="Architect logo" loading="lazy" />
           <span class="project-thumb-tag">Plugin</span>
-          <span class="project-thumb-glyph">A</span>
         </div>
         <div class="project-meta">
           <h3 class="project-name">
             Architect
             <svg class="project-name-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
           </h3>
-          <p class="project-desc">An interactive interface for Claude Plan Mode. See the system, comment on the diagram, steer the plan.</p>
-          <span class="project-year">2026 — In progress</span>
+          <p class="project-desc">Claude plugin to generate interactive architecture diagrams.</p>
+        </div>
+      </a>
+
+      <a class="project-card" data-tag="Extension" href="https://github.com/willhennessy/tweak" target="_blank" rel="noopener" style="--thumb-a: var(--color-element-indigo); --thumb-b: var(--color-element-plum); --thumb-ink: var(--color-element-indigo); --logo-size: 50%; --logo-radius: 22%;">
+        <div class="project-thumb">
+          <img class="project-thumb-logo" src="assets/projects/tweak-logo.png" alt="Tweak logo" loading="lazy" />
+          <span class="project-thumb-tag">Extension</span>
+        </div>
+        <div class="project-meta">
+          <h3 class="project-name">
+            Tweak
+            <svg class="project-name-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </h3>
+          <p class="project-desc">Filter, style, and modify any webpage with this LLM-powered chrome extension.</p>
+        </div>
+      </a>
+
+      <a class="project-card" data-tag="Wallet" href="https://wallet.uniswap.org/" target="_blank" rel="noopener" style="--thumb-a: #FF7AB6; --thumb-b: #FFC2DC; --thumb-ink: #FF007A; --logo-size: 80%;">
+        <div class="project-thumb">
+          <img class="project-thumb-logo" src="assets/projects/uniswap-wallet.png" alt="Uniswap Wallet send confirmation screen" loading="lazy" />
+          <span class="project-thumb-tag">Wallet</span>
+        </div>
+        <div class="project-meta">
+          <h3 class="project-name">
+            Uniswap Wallet
+            <svg class="project-name-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </h3>
+          <p class="project-desc">A delightful mobile wallet for DeFi and stablecoins that has traded billions of dollars.</p>
+        </div>
+      </a>
+
+      <a class="project-card" data-tag="Web App" href="https://github.com/magnet-finance/magnet-app" target="_blank" rel="noopener" style="--thumb-a: #90CAF9; --thumb-b: #BBDEFB; --thumb-ink: #1976D2;">
+        <div class="project-thumb">
+          <img class="project-thumb-logo" src="assets/projects/magnet-logo.png" alt="Magnet logo" loading="lazy" />
+          <span class="project-thumb-tag">Web App</span>
+        </div>
+        <div class="project-meta">
+          <h3 class="project-name">
+            Magnet
+            <svg class="project-name-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </h3>
+          <p class="project-desc">Onchain payroll platform for stablecoins.</p>
+        </div>
+      </a>
+
+      <a class="project-card" data-tag="Game" href="https://github.com/willhennessy/the-mine" target="_blank" rel="noopener" style="--thumb-a: var(--color-element-ochre); --thumb-b: var(--color-element-slate); --thumb-ink: var(--color-element-ochre); --logo-size: 65%;">
+        <div class="project-thumb">
+          <img class="project-thumb-logo" src="assets/projects/the-mine-logo.png" alt="The Mine pickaxe" loading="lazy" style="image-rendering: pixelated;" />
+          <span class="project-thumb-tag">Game</span>
+        </div>
+        <div class="project-meta">
+          <h3 class="project-name">
+            The Mine
+            <svg class="project-name-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </h3>
+          <p class="project-desc">A mining mini game written purely in Solidity smart contracts.</p>
         </div>
       </a>
     </div>
