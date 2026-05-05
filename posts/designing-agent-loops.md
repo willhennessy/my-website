@@ -1,5 +1,5 @@
 ---
-title: Designing Agent Loops for Human Taste
+title: Designing Agent Loops for Human Review
 slug: designing-agent-loops
 date: 2026-04-26
 read_time: 4 min read

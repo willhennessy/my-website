@@ -53,7 +53,7 @@ Let's walk through a demo. We'll design a new multi-tenant B2B document-signing 
 
 Switch to Plan Mode and give Claude your requirements.
 
-![terminal_initial_prompt](../assets/posts/introducing-architect/terminal_initial_prompt.png){.no-border}Claude writes the plan as usual, and then asks
+![terminal_initial_prompt](../assets/posts/introducing-architect/introducing-architect-terminal-initial-prompt.png){.no-border}Claude writes the plan as usual, and then asks
 
 > _Do you want to review an interactive architecture diagram?_
 

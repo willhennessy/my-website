@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Claude Architect: steer coding agents with interactive diagrams — Will Hennessy</title>
-<meta name="description" content="The Claude Architect plugin adds an interactive architecture diagram to Plan Mode so you can review, annotate, and revise the plan with Claude in real time." />
+<title>Can Claude Imagine Generate Review Interfaces? — Will Hennessy</title>
+<meta name="description" content="An experiment with Claude Imagine to dynamically generate an interface for code architecture review and steering." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -82,9 +82,9 @@
   </div>
 
   <header>
-    <p class="article-meta">6 min read · Launch</p>
-    <h1 class="article-title">Claude Architect: steer coding agents with interactive diagrams</h1>
-    <p class="article-lede">Make Plan Mode feel like a whiteboard session</p>
+    <p class="article-meta">7 min read · Experiment</p>
+    <h1 class="article-title">Can Claude Imagine Generate Review Interfaces?</h1>
+    <p class="article-lede">Can agents dynamically generate interfaces for users to review and steer work?</p>
 
     <div class="article-byline">
       <div class="article-byline-avatar">
@@ -92,96 +92,81 @@
       </div>
       <div>
         <p class="article-byline-name">Will Hennessy</p>
-        <p class="article-byline-meta">Apr 27, 2026</p>
+        <p class="article-byline-meta">Apr 30, 2026</p>
       </div>
     </div>
   </header>
 
   <div class="article-body">
-<h2>Steering agents in production systems</h2>
-<p>Coding agents can one-shot a prototype, but when you're building a production system they need a lot of steering. That steering usually falls into three buckets:</p>
+<p>When I started building <a href="https://willhennessy.io/writing/introducing-architect.html">Architect</a>, I planned to use <a href="https://claude.com/blog/claude-builds-visuals">Claude Imagine</a> to render the interactive architecture diagram. It can generate a periodic table, so why not a system diagram for Plan Mode?</p>
+<p>I quickly ran into limitations.</p>
+<p>Claude Imagine was only available in the Chat tab of the desktop app, with no way to invoke it in Claude Code. The generated diagrams also couldn't support interactive comments, which are essential to the architecture review flow. Even if those product gaps were closed, the model still struggled to format diagrams correctly. Labels collided, arrows disappeared behind boxes, and breadcrumb navigation felt clunky.</p>
+<p>Here's one early attempt:</p>
+<p><img alt="Early Claude Imagine architecture diagram" src="../assets/posts/claude-imagine-dynamic-review-interfaces/imagine-early-system-diagram.png" /></p>
+<p>So I built a custom <a href="https://github.com/willhennessy/architect/blob/main/skills/architect-diagram/SKILL.md">Architect skill</a> that renders architecture diagrams with clean routing and interactive comments sent directly to your local Claude Code session. The <a href="https://willhennessy.io/demos/architect/document-signing">result</a> is a much cleaner review interface:</p>
+<p><img alt="Architect architecture review interface" src="../assets/posts/claude-imagine-dynamic-review-interfaces/architect-clean-review-interface.png" /></p>
+<p>But the failed Imagine attempt left me wondering:  can Claude learn to generate review interfaces dynamically?</p>
+<h2>Human review is becoming the bottleneck</h2>
+<p>Agents are writing code, essays, designs, and spreadsheets faster than ever. The bottleneck is no longer production, but review.</p>
+<p>Turn-based prompts work well for simple outputs. You read the reply, type a few notes, and submit. But when Claude produces a complex artifact like a design mock, system architecture, or financial model, the review flow balloons and you can feel it. You have to:</p>
 <ul>
-<li><strong>cross-component context</strong>: "after refactoring Component A, go update Component B which calls it"</li>
-<li><strong>production requirements</strong>: "add a load balancer here" or "put a cache there"</li>
-<li><strong>confidence checks</strong>: "will this actually hold up at 50 QPS in prod?"</li>
+<li>Identify what changed</li>
+<li>Decide which parts are important to review</li>
+<li>Reference those parts in your feedback ("change the topbar text .navbar-header to size 32px")</li>
+<li>Bundle several pieces of feedback together in one prompt</li>
 </ul>
-<p>The local implementation is often fine, but steering is needed to transfer full system context and production constraints from your head into the agent’s plan. After a full day of back-and-forth in the terminal, that overhead starts to feel like its own job.</p>
-<h2>Diagrams: a better interface for system design</h2>
-<p>What if Plan Mode felt more like a whiteboard session?</p>
-<p>Whiteboards are a great tool for system design because you can quickly grok the entire architecture, spot relationships that are easy to miss in text, and debate specific components in context of the whole system. They result in clear decisions and usually leave you feeling energized.</p>
-<figure><img src="../assets/posts/introducing-architect/image-20260419152418294.png" alt="image-20260419152418294"><figcaption>A good whiteboard session quickly surfaces the most important design decisions</figcaption></figure>
-
-<h2>Steering agents through diagrams</h2>
-<p>I built the Claude Architect <a href="https://github.com/willhennessy/architect">plugin</a> to make Plan Mode feel more like a whiteboard session. The plugin generates an interactive architecture diagram during Plan Mode so you can review, annotate, and revise the plan with Claude in real time.</p>
-<p><img src="../assets/posts/introducing-architect/image-20260421181209598.png" alt="image-20260421181209598" class="no-border"></p>
-<p>The steering loop feels like a whiteboard session:</p>
+<p>That cognitive load is a real bottleneck now that agents can produce drafts faster than users can review them. To help people collaborate with agents more efficiently, we need <strong><a href="https://willhennessy.io/writing/designing-agent-loops.html">higher-bandwidth interfaces</a></strong> for reviewing agent work: interfaces that focus attention, attach feedback to the work, present contextual controls, and preserve escape hatches for direct editing.</p>
+<p>Claude Design is a good example of where this is going. The prompt box gets a small slice of real estate while the interface focuses your attention on the artifact itself and invites you to comment directly on parts that need feedback.</p>
+<p><img alt="Claude Design review surface" src="../assets/posts/claude-imagine-dynamic-review-interfaces/claude-design-artifact-review-surface.png" /></p>
+<p>When you orient the collaboration around the artifact, steering feels faster, prompts get shorter, and you judge the output more easily because you see it in context.</p>
+<p>The next question is whether we need to hand-design a review interface for every domain, or whether Claude can learn to generate one based on the task at hand.</p>
+<h2>Test case: architecture diagrams</h2>
+<p>Architecture diagrams are a useful test case: Claude already understands code, diagrams are complex but bounded, and this architecture is codified in a semantic model I can reuse across eval rounds. In this post, I test whether Claude Imagine can generate the review interface Architect needs.</p>
+<p>For this experiment, I used the same <a href="https://github.com/willhennessy/architect-demo-document-signing/tree/main/architecture">canonical architecture model</a> behind the Architect demo. This grounded the eval in a fixed architecture with explicit nodes, edges, layers, and labels.</p>
+<p>To start, I defined a simple eval rubric with five criteria for a good architecture review interface. I weighted each one equally from 0-3, so a perfect diagram would score 15/15.</p>
 <ol>
-<li><strong>review the architecture</strong> and see relationships at a glance</li>
-<li><strong>drill down</strong> into containers and components to review each layer</li>
-<li><strong>comment directly</strong> on any node or edge</li>
-<li><strong>review updates</strong> from Claude in response to your comments</li>
+<li><strong>Source fidelity and coverage.</strong> Every node, edge, and label in the canonical architecture should be visible in the diagram. No element should be hallucinated. Everything should trace back to the source model.</li>
+<li><strong>Visual integrity.</strong> The diagram should be legible to the human eye. Nodes should not overlap, edges should route around nodes, labels should sit in clear space, and colors should encode meaning consistently.</li>
+<li><strong>Information density.</strong> The canvas should show structure, not become documentation. Related nodes should sit near each other, and node boxes should present only essential information: type, name, and technology.</li>
+<li><strong>Interaction coherence.</strong> The C4 hierarchy should be clear. Users should be able to drill down into containers and navigate back with breadcrumbs. Each click target should have one predictable behavior.</li>
+<li><strong>Reviewability.</strong> The diagram should be fast enough to support iteration between the agent and the user. Rendering time matters, but so does whether failures are easy to spot and fix.</li>
 </ol>
-<p>Under the hood, Claude builds a semantic model of the system architecture using the <a href="https://c4model.com/abstractions">C4 model</a>, writes it to structured <a href="https://github.com/willhennessy/architect-demo-document-signing/tree/main/architecture">YAML files</a>, and renders those files in an interactive diagram. Your comments are sent back to Claude through a local <a href="https://code.claude.com/docs/en/channels">Channel</a>, and then Claude updates both the plan and diagram in real time.</p>
-<p>You interact with a visual diagram and Claude reads structured YAML files.</p>
-<h2>Demo</h2>
-<p>Let's walk through a demo. We'll design a new multi-tenant B2B document-signing platform.</p>
-<h3>1. Start planning</h3>
-<p>Switch to Plan Mode and give Claude your requirements.</p>
-<p><img alt="terminal_initial_prompt" class="no-border" src="../assets/posts/introducing-architect/introducing-architect-terminal-initial-prompt.png" />Claude writes the plan as usual, and then asks</p>
+<p>I used this rubric to evaluate each turn of the iteration with Claude.</p>
+<h2>The first draft failed in useful ways</h2>
+<p>I began with a detailed prompt asking Claude to render the document signing architecture with layout rules, data boundaries, and interactive drill-down behavior.</p>
+<p>The first result was functionally correct, but visually cluttered. Edges crossed through unrelated nodes. Labels collided. Boxes carried too much text. Navigation buttons cluttered the UI. Score: 6/15.</p>
+<p><img alt="First Claude Imagine diagram attempt" src="../assets/posts/claude-imagine-dynamic-review-interfaces/imagine-first-eval-diagram.png" /></p>
+<p>I asked Claude why it missed such obvious edge routing problems. Its answer was insightful:</p>
 <blockquote>
-<p><em>Do you want to review an interactive architecture diagram?</em></p>
+<p>I didn't actually verify the routing. I treated "draw an arrow from A to B" as a one-step problem and eyeballed the waypoints instead of reserving channels. The original prompt didn't ask me to verify my own work, so I didn't.</p>
 </blockquote>
-<p>Yes.</p>
-<h3>Review the diagram</h3>
-<p>Claude generates the diagram and opens it in your browser. You can inspect nodes to see more detail, hover over edges to see their function, and drill down into four layers: context, containers, components, and code.</p>
-<p>Try the <a href="https://willhennessy.io/demos/architect/document-signing">live demo</a> for yourself!</p>
-<p><img alt="image-20260421181226100" src="../assets/posts/introducing-architect/image-20260421181226100.png" /></p>
-<h3>Comment on the diagram</h3>
-<p>Toggle on Comment mode (C) to add feedback directly to any node or edge in the architecture. Each comment is associated with the element ID so Claude receives your feedback in context.</p>
-<p><img src="../assets/posts/introducing-architect/image-20260421181235046.png" alt="image-20260421181235046" class="no-border"></p>
-<h3>Claude incorporates your feedback</h3>
-<p>Claude receives your comments through a Channel, processes them in the terminal, updates the plan doc, and re-renders the diagram with your feedback. This isn’t limited to small tweaks either: Claude can add new components, refactor containers, or rewrite the entire system.</p>
-<figure><img src="../assets/posts/introducing-architect/image-20260421181309313.png" alt="image-20260421181309313" class="no-border"><figcaption>Claude addressed my comment by splitting the webhook worker into a separate container with its own queue budget</figcaption></figure>
-
-<h2>Beyond planning</h2>
-<p>You exit Plan Mode with two durable artifacts.</p>
+<p>Claude knew many of the right design principles, but it was not applying them as constraints. I needed to codify more rules, so I spent the next hour coaching Claude through the failure modes.</p>
+<h2>What improved the diagram</h2>
+<p>The most useful part of the experiment was watching the failure mode shift from rendering to judgment.</p>
+<p><strong>1. Layout had to become global.</strong> Claude originally treated each edge as its own drawing problem: connect A to B with a line, but routing is a global problem. Nodes need to be placed first, empty channels need to be reserved between groups, and then every edge needs to route through those channels. Once Claude adopted that strategy, most of the edge collisions disappeared. Score: 8/15.</p>
+<p><strong>2. Label placement needed verification too.</strong> After the edge routing improved, labels still collided. The root cause was similar. Claude placed labels relative to individual edges instead of checking the global set of labels and nodes. I asked it to relocate each label into clear space with explicit offsets per lane and that made labels legible. Score: 9/15.</p>
+<p><strong>3. Information density required domain taste.</strong> Claude was putting far too much information inside each box. This is where the experiment got interesting. Once I gave Claude a strict rule: type, name, technology, and nothing else, it cleaned up the canvas quickly. But writing that rule required judgment about what information <em>actually matters</em> to a software engineer.</p>
+<p>This will be a central problem for dynamic interface design. Claude can follow layout instructions, but great interfaces require taste and judgment. We will need to train Claude on domain judgment: what information deserves attention, which controls take priority, and what should be hidden below the fold.</p>
+<p><strong>4. Reduce app chrome.</strong> Claude added a row of view-selector buttons, a static "major uncertainties" paragraph, and a sources block at the bottom. All of that competed with the diagram. Breadcrumbs were enough navigation when drill-down was obvious. Removing unnecessary chrome made the surface feel more like a review interface and less like a generated report. Score: 12/15.</p>
+<p><strong>5. Interactions needed more specification.</strong> The final issue was the details panel. Claude originally rendered it as a static block below the diagram, which forced the user to scroll away from the artifact to read details. I asked for a sidebar that animates in from the right, overlaid on the canvas, with a close button. Claude then attached the side panel to elements that were supposed to drill down, creating two behaviors for one click. I had to specify the interaction contract: drillable nodes drill down; leaf nodes open details.</p>
+<p>By the end, Claude was consistently producing diagrams that scored 12/15 on the rubric.</p>
+<p><img alt="Final Claude Imagine diagram" src="../assets/posts/claude-imagine-dynamic-review-interfaces/imagine-final-architecture-diagram.png" /></p>
+<h2>The hard part is not drawing</h2>
+<p>Claude is better at generating interfaces than I expected. With a rubric, a forced verification pass, and domain-specific content rules, it can produce architecture diagrams that are genuinely useful for review.</p>
+<p>The real challenge is deeper than rendering. Great interfaces require product judgment to know what information and controls actually matter in each domain. Claude can learn some of this over time, but it will take active product development in each vertical. Some of that judgment will form patterns that transfer across domains, but the work probably starts one workflow at a time.</p>
+<p>To get there, a few things need to improve:</p>
 <ul>
-<li><strong>Structured YAML files</strong> encode your architecture in an agent-readable format. Next, I'm going to research if these files help agents work more effectively in large scale codebases.</li>
-<li><strong>Visual diagrams</strong> illustrate your architecture in human-readable format to help your teammates operate with the full system in view.</li>
+<li><strong>Domain judgment:</strong> Claude needs to learn the rules of each domain so it can design interfaces with real craft.</li>
+<li><strong>Rendering time:</strong> each architecture diagram took around 10 minutes to render, which is too slow for a live steering loop. The next generation of models needs to generate interactive visuals more quickly.</li>
+<li><strong>Workflow integration:</strong> review interfaces should live inside the workflow. For architecture review, that means Claude Code. The user should be able to generate a system diagram inside Plan Mode, review it in a browser, and send feedback back to Claude. <a href="https://willhennessy.io/writing/introducing-architect.html">Architect</a> proves the loop is useful, but native integration would make it much better.</li>
 </ul>
-<p>Text for agents; diagrams for humans.</p>
-<h2>High bandwidth interfaces</h2>
-<p>The <a href="https://willhennessy.io/writing/designing-agent-loops.html">design principle</a> behind Architect is to increase the <strong>communication bandwidth</strong> between you and Claude.</p>
-<p>By bandwidth, I mean how much context can flow between the engineer and the agent per unit of effort. Simple projects require very little bandwidth; a short prompt is often enough. Large production systems need much higher bandwidth to communicate system boundaries, production constraints, real-world edge cases, and risks that an experienced engineer knows to look for.</p>
-<p>Architecture diagrams increase read bandwidth. Instead of paging through a long text plan, you can see the system at a glance, understand the major relationships, and spot the high-leverage places to direct your attention with less cognitive load.</p>
-<p>Interactive comments increase write bandwidth. Instead of restating component names in every round of chat, you can comment directly on the node. A fully interactive canvas would unlock even more bandwidth.</p>
-<p>Agents give you leverage, but interfaces determine how much of it you can actually use. Legible plans make the important decisions easier to spot. In-context feedback lowers the friction of steering. The result is a faster, tighter iteration loop between you and Claude.</p>
-<h2>What's next</h2>
-<p>Powerful models have made chat interfaces feel magical, but this prototype was a reminder that interface design still matters because agents perform much better when humans understand the plan and steer it well. Last week's Claude Design launch is another good example of how much interface design can shape agent performance. I expect a lot more experimentation in agent interfaces this year.</p>
-<p>Next, I'll be adding more features and exploring research questions:</p>
-<ol>
-<li>What parts of Plan Mode are better done in a diagram vs. a text doc?</li>
-<li>Does the codified architecture model help coding agents operate more effectively in large codebases by providing a high level map of the system?</li>
-<li>Can we use the architecture model to establish useful guardrails that mitigate architecture drift as agents operate in large codebases?</li>
-</ol>
-<h2>Try it out</h2>
-<p>Install the <a href="https://github.com/willhennessy/architect/tree/main">architect plugin</a>:</p>
-<pre><code class="language-bash">claude plugin marketplace add https://github.com/willhennessy/architect.git
-claude plugin install architect@plugins
-</code></pre>
-<p>Run Claude with a flag to enable the comments <a href="https://code.claude.com/docs/en/channels">Channel</a>:</p>
-<pre><code class="language-bash">claude --dangerously-load-development-channels plugin:architect@plugins
-</code></pre>
-<p>Then switch to plan mode and invoke the architect skill:</p>
-<pre><code class="language-bash">/architect:plan &lt;prompt&gt;
-</code></pre>
-<p>Or generate a diagram for your existing codebase with <code>/architect:init</code></p>
-<p>I'd love to <a href="https://x.com/WillHennessy_">hear your feedback</a>. How accurate was the architecture? What comments did you give Claude? What features do you want to see next?</p>
+<p>Claude Design is interesting because it orients the entire conversation around the artifact. Chat is present, but the primary surface is the design itself. The product helps you review Claude's work more quickly with domain-specific controls and comments directly on the design. That's a winning pattern for agent interfaces, and I expect to see more of it this year.</p>
+<p>I'm excited to build more of these interfaces: the surfaces, rubrics, and feedback paths that let human judgment shape agent work at higher bandwidth. If you're working on this, say hello.</p>
   </div>
 
   <nav class="article-nav" aria-label="More writing">
-    <a class="article-nav-link prev" href="designing-agent-loops.html"><span class="article-nav-label">← Previous</span><p class="article-nav-title">Designing Agent Loops for Human Review</p></a>
-    <a class="article-nav-link next" href="claude-imagine-dynamic-review-interfaces.html"><span class="article-nav-label">Next →</span><p class="article-nav-title">Can Claude Imagine Generate Review Interfaces?</p></a>
+    <a class="article-nav-link prev" href="introducing-architect.html"><span class="article-nav-label">← Previous</span><p class="article-nav-title">Claude Architect: steer coding agents with interactive diagrams</p></a>
+    <span></span>
   </nav>
 
 </article>
