@@ -5,7 +5,7 @@ date: 2026-04-30
 read_time: 7 min read
 category: Experiment
 description: An experiment with Claude Imagine to dynamically generate an interface for code architecture review and steering.
-lede: Can agents dynamically generate interfaces for users to review and steer work?
+lede: An experiment testing whether Claude Imagine can dynamically generate interfaces for reviewing and steering work.
 ---
 
 When I started building [Architect](https://willhennessy.io/writing/introducing-architect.html), I planned to use [Claude Imagine](https://claude.com/blog/claude-builds-visuals) to render the interactive architecture diagram. It can generate a periodic table, so why not a system diagram for Plan Mode?
