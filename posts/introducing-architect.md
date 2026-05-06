@@ -1,14 +1,16 @@
 ---
-title: Claude Architect: steer coding agents with interactive diagrams
+title: Claude Architect: Interactive Architecture Review in Plan Mode
 slug: introducing-architect
 date: 2026-04-27
 read_time: 6 min read
 category: Launch
-description: The Claude Architect plugin adds an interactive architecture diagram to Plan Mode so you can review, annotate, and revise the plan with Claude in real time.
+description: Claude Architect turns Plan Mode into a collaborative architecture review with Claude so you can review, annotate, and revise the plan with Claude in real time.
 lede: Make Plan Mode feel like a whiteboard session
 ---
 
-I'm excited to launch Claude Architect, a plugin that lets you review Claude's plan as an interactive architecture diagram in Plan Mode. You can see the whole system at a glance, comment directly on components and relationships, and refine the architecture with Claude before code is written.
+I'm excited to launch Claude Architect, a plugin that turns Plan Mode into a collaborative architecture review with Claude.
+
+Architect renders any Claude Code plan as an interactive system diagram so you can see the whole system at a glance, comment directly on components and relationships, and refine the architecture with Claude before code is written.
 
 <div style="padding:56.25% 0 0 0;position:relative;"><iframe src="https://player.vimeo.com/video/1189608717?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" style="position:absolute;top:0;left:0;width:100%;height:100%;" title="Claude Architect"></iframe></div><script src="https://player.vimeo.com/api/player.js"></script>
 
