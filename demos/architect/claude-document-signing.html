@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Document Signing Platform — Architecture</title>
+<style>
+  :root {
+    --bg: #fafbfc;
+    --canvas-bg: #ffffff;
+    --text-primary: #1a202c;
+    --text-secondary: #6b7280;
+    --text-muted: #9ca3af;
+    --border: #e5e7eb;
+    --border-strong: #d1d5db;
+    --accent: #6366f1;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.03);
+    --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+
+    /* Type colors */
+    --c-person: #6b7280;
+    --c-person-bg: #f3f4f6;
+    --c-person-stroke: #9ca3af;
+
+    --c-system: #5b21b6;
+    --c-system-bg: #ede9fe;
+    --c-system-stroke: #8b5cf6;
+
+    --c-container: #6d28d9;
+    --c-container-bg: #f5f3ff;
+    --c-container-stroke: #a78bfa;
+
+    --c-component: #6d28d9;
+    --c-component-bg: #faf5ff;
+    --c-component-stroke: #c4b5fd;
+
+    --c-worker: #047857;
+    --c-worker-bg: #ecfdf5;
+    --c-worker-stroke: #34d399;
+
+    --c-security: #be185d;
+    --c-security-bg: #fdf2f8;
+    --c-security-stroke: #f472b6;
+
+    --c-data: #1d4ed8;
+    --c-data-bg: #eff6ff;
+    --c-data-stroke: #60a5fa;
+
+    --c-external: #c2410c;
+    --c-external-bg: #fff7ed;
+    --c-external-stroke: #fb923c;
+
+    --c-deployment: #475569;
+    --c-deployment-bg: #f1f5f9;
+    --c-deployment-stroke: #94a3b8;
+
+    --edge-sync: #4b5563;
+    --edge-async: #047857;
+    --edge-storage: #1d4ed8;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    height: 100vh; overflow: hidden;
+  }
+
+  .app {
+    display: flex; flex-direction: column;
+    height: 100vh; width: 100vw;
+  }
+
+  /* Header */
+  .header {
+    padding: 16px 24px 12px;
+    background: var(--canvas-bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .system-name {
+    font-size: 18px; font-weight: 600; margin: 0 0 2px;
+    color: var(--text-primary);
+  }
+  .system-purpose {
+    font-size: 12px; color: var(--text-secondary); margin: 0;
+    line-height: 1.4;
+  }
+
+  /* Breadcrumbs row */
+  .nav-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 24px; background: var(--canvas-bg);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; font-size: 12px; font-weight: 500;
+    color: var(--text-secondary); background: transparent;
+    border: 1px solid var(--border-strong); border-radius: 5px;
+    cursor: pointer; user-select: none;
+  }
+  .back-btn:hover:not(:disabled) {
+    background: var(--bg); color: var(--text-primary);
+  }
+  .back-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .breadcrumbs {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px;
+    flex-wrap: wrap;
+  }
+  .crumb {
+    color: var(--accent); cursor: pointer;
+    text-decoration: none;
+  }
+  .crumb:hover { text-decoration: underline; }
+  .crumb.current { color: var(--text-primary); cursor: default; font-weight: 500; }
+  .crumb.current:hover { text-decoration: none; }
+  .crumb-sep { color: var(--text-muted); font-size: 11px; }
+  .crumb-label {
+    color: var(--text-muted); font-size: 12px; margin-right: 4px;
+  }
+
+  .right-controls {
+    margin-left: auto; display: flex; align-items: center; gap: 10px;
+  }
+  .toggle {
+    display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+    font-size: 12px; color: var(--text-secondary); user-select: none;
+  }
+  .toggle input { margin: 0; }
+  .toggle.active { color: var(--accent); font-weight: 500; }
+  .export-btn {
+    padding: 4px 10px; font-size: 12px;
+    background: var(--accent); color: white;
+    border: none; border-radius: 5px; cursor: pointer;
+    font-weight: 500;
+  }
+  .export-btn:hover { opacity: 0.9; }
+  .export-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Main canvas + panel */
+  .canvas-wrap {
+    position: relative; flex: 1; overflow: hidden;
+    background: var(--canvas-bg);
+  }
+  .canvas-scroll {
+    width: 100%; height: 100%; overflow: auto;
+  }
+  svg.layer { display: block; }
+
+  /* Layers visibility */
+  .layer { display: none; }
+  .layer.active { display: block; }
+
+  /* Comment-mode body cue */
+  .canvas-wrap.comment-mode {
+    cursor: crosshair;
+  }
+  .canvas-wrap.comment-mode .node-card,
+  .canvas-wrap.comment-mode .edge-hit {
+    cursor: crosshair !important;
+  }
+
+  /* Detail panel */
+  .panel {
+    position: absolute; top: 0; right: 0; bottom: 0;
+    width: 380px; max-width: 92vw;
+    background: var(--canvas-bg); border-left: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    transform: translateX(100%);
+    transition: transform 0.2s ease-out;
+    z-index: 20; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .panel.open { transform: translateX(0); }
+  .panel-header {
+    padding: 20px 20px 12px; border-bottom: 1px solid var(--border);
+    flex-shrink: 0; position: relative;
+  }
+  .panel-close {
+    position: absolute; top: 14px; right: 14px;
+    width: 28px; height: 28px;
+    background: transparent; border: none;
+    border-radius: 4px; cursor: pointer;
+    font-size: 20px; line-height: 1; color: var(--text-secondary);
+  }
+  .panel-close:hover { background: var(--bg); color: var(--text-primary); }
+  .panel-name {
+    font-size: 18px; font-weight: 600; margin: 0;
+    padding-right: 36px;
+  }
+  .panel-type {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; margin-top: 4px;
+  }
+  .panel-body {
+    padding: 16px 20px 24px; overflow-y: auto; flex: 1;
+    font-size: 13px; line-height: 1.5;
+  }
+  .panel-section { margin-bottom: 18px; }
+  .panel-section-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .panel-section-content { color: var(--text-primary); }
+  .panel-section-content p { margin: 0; }
+  .rel-row {
+    padding: 6px 0; border-bottom: 1px dashed var(--border);
+    font-size: 12px;
+  }
+  .rel-row:last-child { border-bottom: none; }
+  .rel-arrow { color: var(--text-muted); margin: 0 4px; }
+  .rel-other { font-weight: 500; }
+  .rel-label { color: var(--text-secondary); display: block; margin-top: 2px; font-size: 11px; }
+  .rel-meta {
+    display: inline-block; padding: 1px 5px; margin-left: 4px;
+    font-size: 9px; font-weight: 600;
+    background: var(--bg); border-radius: 3px;
+    color: var(--text-secondary);
+  }
+  .rel-meta.async { color: var(--edge-async); background: #ecfdf5; }
+  .rel-meta.storage { color: var(--edge-storage); background: #eff6ff; }
+  .conf-pill {
+    display: inline-block; padding: 2px 8px;
+    font-size: 11px; font-weight: 500;
+    border-radius: 10px;
+    background: var(--bg); color: var(--text-secondary);
+  }
+  .conf-confirmed { background: #ecfdf5; color: #047857; }
+  .conf-strong { background: #eff6ff; color: #1d4ed8; }
+  .conf-weak { background: #fef3c7; color: #b45309; }
+
+  /* Comment panel */
+  .comment-panel {
+    position: absolute; top: 0; right: 0; bottom: 0;
+    width: 360px; background: var(--canvas-bg);
+    border-left: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    transform: translateX(100%);
+    transition: transform 0.2s ease-out;
+    z-index: 19; display: flex; flex-direction: column;
+  }
+  .comment-panel.open { transform: translateX(0); }
+  .comment-panel-header {
+    padding: 16px 20px 12px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .comment-panel-title { font-size: 14px; font-weight: 600; margin: 0; }
+  .comment-list { flex: 1; overflow-y: auto; padding: 12px 20px; }
+  .comment-empty { color: var(--text-muted); font-size: 13px; text-align: center; padding: 24px 0; }
+  .comment-item {
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 10px 12px; margin-bottom: 10px;
+    background: var(--bg);
+  }
+  .comment-target {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .comment-target-label {
+    font-size: 12px; color: var(--text-primary); font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .comment-text { font-size: 13px; color: var(--text-primary); margin-bottom: 6px; line-height: 1.4; white-space: pre-wrap; }
+  .comment-actions { font-size: 11px; }
+  .comment-action {
+    color: var(--accent); cursor: pointer; margin-right: 12px;
+  }
+  .comment-action:hover { text-decoration: underline; }
+
+  /* Comment composer */
+  .composer {
+    position: absolute; z-index: 30;
+    background: var(--canvas-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px; box-shadow: var(--shadow-lg);
+    padding: 10px; width: 280px;
+  }
+  .composer textarea {
+    width: 100%; min-height: 64px;
+    padding: 6px 8px; font-size: 13px;
+    font-family: inherit;
+    border: 1px solid var(--border); border-radius: 4px;
+    resize: vertical; outline: none;
+  }
+  .composer textarea:focus { border-color: var(--accent); }
+  .composer-target {
+    font-size: 10px; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+  .composer-target-label {
+    font-size: 12px; font-weight: 500;
+    margin-bottom: 8px; color: var(--text-primary);
+  }
+  .composer-buttons {
+    display: flex; justify-content: flex-end; gap: 6px; margin-top: 8px;
+  }
+  .composer-btn {
+    padding: 4px 10px; font-size: 12px;
+    border: 1px solid var(--border-strong); background: var(--canvas-bg);
+    border-radius: 4px; cursor: pointer;
+  }
+  .composer-btn.primary {
+    background: var(--accent); color: white; border-color: var(--accent);
+  }
+
+  /* Comment markers */
+  .comment-marker {
+    cursor: pointer;
+  }
+
+  /* Legend */
+  .legend {
+    padding: 10px 24px;
+    background: var(--canvas-bg);
+    border-top: 1px solid var(--border);
+    display: flex; flex-wrap: wrap; gap: 16px;
+    font-size: 11px; color: var(--text-secondary);
+    align-items: center;
+  }
+  .legend-group { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .legend-divider { width: 1px; height: 14px; background: var(--border); }
+  .legend-item { display: inline-flex; align-items: center; gap: 5px; }
+  .swatch {
+    display: inline-block; width: 14px; height: 12px;
+    border-radius: 3px; border: 1.5px solid;
+  }
+  .swatch-line {
+    display: inline-block; width: 24px; height: 2px;
+    background: var(--text-secondary); position: relative;
+  }
+
+  /* SVG: nodes */
+  .node-card {
+    cursor: pointer;
+  }
+  .node-card .node-rect {
+    transition: filter 0.12s ease-out;
+  }
+  .node-card:hover .node-rect {
+    filter: brightness(0.97);
+  }
+  .node-card.drillable:hover .node-rect {
+    filter: brightness(0.93);
+  }
+  .node-type {
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 0.1em;
+    text-anchor: middle;
+  }
+  .node-name {
+    font-size: 13px; font-weight: 600;
+    text-anchor: middle;
+  }
+  .node-tech {
+    font-size: 10.5px;
+    text-anchor: middle;
+  }
+  .chevron {
+    font-size: 11px; font-weight: 700;
+    fill: var(--text-muted);
+  }
+  .boundary-rect {
+    fill: none;
+    stroke: var(--border-strong);
+    stroke-width: 1;
+    stroke-dasharray: 5 4;
+  }
+  .boundary-label {
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    fill: var(--text-muted);
+  }
+
+  /* SVG: edges */
+  .edge-path {
+    fill: none;
+    stroke: var(--edge-sync);
+    stroke-width: 1.4;
+  }
+  .edge-path.async {
+    stroke: var(--edge-async);
+    stroke-dasharray: 4 3;
+  }
+  .edge-path.storage {
+    stroke: var(--edge-storage);
+    stroke-dasharray: 1 3;
+  }
+  .edge-hit {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 16;
+    cursor: default;
+    pointer-events: stroke;
+  }
+  .edge-label {
+    font-size: 10px;
+    fill: var(--text-secondary);
+    text-anchor: middle;
+    pointer-events: none;
+  }
+  .edge-label-bg {
+    fill: var(--canvas-bg);
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="header">
+    <h1 class="system-name">Document Signing Platform</h1>
+    <p class="system-purpose">Multi-tenant B2B document signing platform — admin authoring, magic-link signer flow, HMAC-signed webhooks, tamper-evident audit trail.</p>
+  </header>
+  <div class="nav-row">
+    <button class="back-btn" id="backBtn">← Back</button>
+    <nav class="breadcrumbs" id="breadcrumbs"></nav>
+    <div class="right-controls">
+      <a href="#" class="crumb" id="deploymentLink" title="Deployment lens">Deployment lens →</a>
+      <label class="toggle" id="commentToggleLabel">
+        <input type="checkbox" id="commentToggle">
+        <span>Comment mode</span>
+      </label>
+      <button class="export-btn" id="exportBtn">Export comments</button>
+    </div>
+  </div>
+  <div class="canvas-wrap" id="canvasWrap">
+    <div class="canvas-scroll" id="canvasScroll">
+      <!-- layers injected here -->
+    </div>
+    <aside class="panel" id="panel" role="dialog" aria-hidden="true"></aside>
+    <aside class="comment-panel" id="commentPanel" aria-hidden="true">
+      <div class="comment-panel-header">
+        <h3 class="comment-panel-title">Comments</h3>
+        <button class="panel-close" id="commentPanelClose" aria-label="Close">×</button>
+      </div>
+      <div class="comment-list" id="commentList"></div>
+    </aside>
+    <div class="composer" id="composer" style="display:none"></div>
+  </div>
+  <div class="legend">
+    <div class="legend-group">
+      <span class="legend-item"><span class="swatch" style="background:var(--c-person-bg);border-color:var(--c-person-stroke)"></span>Person</span>
+      <span class="legend-item"><span class="swatch" style="background:var(--c-system-bg);border-color:var(--c-system-stroke)"></span>Software system</span>
+      <span class="legend-item"><span class="swatch" style="background:var(--c-container-bg);border-color:var(--c-container-stroke)"></span>Container / Component</span>
+      <span class="legend-item"><span class="swatch" style="background:var(--c-worker-bg);border-color:var(--c-worker-stroke)"></span>Worker pool / async</span>
+      <span class="legend-item"><span class="swatch" style="background:var(--c-security-bg);border-color:var(--c-security-stroke)"></span>Security / compliance</span>
+      <span class="legend-item"><span class="swatch" style="background:var(--c-data-bg);border-color:var(--c-data-stroke)"></span>Data store</span>
+      <span class="legend-item"><span class="swatch" style="background:var(--c-external-bg);border-color:var(--c-external-stroke)"></span>External system</span>
+      <span class="legend-item"><span class="swatch" style="background:var(--c-deployment-bg);border-color:var(--c-deployment-stroke)"></span>Deployment node</span>
+    </div>
+    <div class="legend-divider"></div>
+    <div class="legend-group">
+      <span class="legend-item"><span class="swatch-line" style="background:var(--edge-sync)"></span>Sync</span>
+      <span class="legend-item"><span class="swatch-line" style="background:var(--edge-async);background-image:linear-gradient(to right, var(--edge-async) 60%, transparent 60%);background-size:6px 2px;background-repeat:repeat-x"></span>Async</span>
+      <span class="legend-item"><span class="swatch-line" style="background:var(--edge-storage);background-image:radial-gradient(circle, var(--edge-storage) 1px, transparent 1px);background-size:4px 2px;background-repeat:repeat-x"></span>Storage</span>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------------------------------------------------------------------------
+   Architecture model — exact IDs preserved from source YAMLs
+   --------------------------------------------------------------------------- */
+const MODEL = {
+  elements: {
+    "person-admin": { id:"person-admin", name:"Admin / Sender", kind:"person", typeLabel:"PERSON", colorRole:"person", description:"Tenant-side user who creates documents, manages templates, sends signing requests, and tracks status.", responsibility:"Author and dispatch envelopes; manage tenant configuration.", technology:"", subtitleFallback:"tenant administrator", confidence:"confirmed" },
+    "person-signer": { id:"person-signer", name:"Signer", kind:"person", typeLabel:"PERSON", colorRole:"person", description:"External recipient who enters via a single-use email magic link and signs a document.", responsibility:"Review and sign documents addressed to them.", technology:"", subtitleFallback:"external recipient", confidence:"confirmed" },
+    "person-developer": { id:"person-developer", name:"Customer Developer", kind:"person", typeLabel:"PERSON", colorRole:"person", description:"Engineer at a customer company integrating with the platform's REST API and webhook callbacks.", responsibility:"Programmatic envelope creation and consumption of webhook events.", technology:"", subtitleFallback:"integration engineer", confidence:"strong_inference" },
+
+    "ext-workos": { id:"ext-workos", name:"WorkOS", kind:"external_system", typeLabel:"EXTERNAL SYSTEM", colorRole:"external", description:"Managed identity service providing SSO (SAML/OIDC), directory sync, and SCIM provisioning for tenant admins.", responsibility:"Authenticate admin users; provision tenant directories.", technology:"WorkOS", confidence:"strong_inference" },
+    "ext-email": { id:"ext-email", name:"Email Provider", kind:"external_system", typeLabel:"EXTERNAL SYSTEM", colorRole:"external", description:"Transactional email service used for signing invitations, magic links, reminders, and completion notices.", responsibility:"Deliver transactional emails reliably with bounce/complaint reporting.", technology:"Postmark or Resend", confidence:"strong_inference" },
+    "ext-s3": { id:"ext-s3", name:"Object Storage", kind:"external_system", typeLabel:"DATA STORE", colorRole:"external", description:"Tenant-prefixed object store for raw uploaded PDFs, sealed signed PDFs, and signature image assets.", responsibility:"Durable, encrypted blob storage with signed-URL access.", technology:"AWS S3 or Cloudflare R2", confidence:"strong_inference" },
+    "ext-customer-system": { id:"ext-customer-system", name:"Customer System", kind:"external_system", typeLabel:"EXTERNAL SYSTEM", colorRole:"external", description:"Customer-operated backend that receives signed webhook callbacks when documents and signatures change state.", responsibility:"Consume webhook events and reflect state in customer systems.", technology:"", subtitleFallback:"customer-operated backend", confidence:"confirmed" },
+
+    "system-doc-signing": { id:"system-doc-signing", name:"Document Signing Platform", kind:"software_system", typeLabel:"SOFTWARE SYSTEM", colorRole:"system", description:"Multi-tenant B2B document signing platform: admin console, signer flow, REST API, four concern-specific worker pools, and audit trail.", responsibility:"Own end-to-end envelope lifecycle: authoring, dispatch, signing, sealing, audit, and webhook fanout.", technology:"TypeScript monorepo (Next.js + workers)", confidence:"confirmed" },
+
+    "container-web":             { id:"container-web", name:"Web / API Monolith", kind:"container", typeLabel:"CONTAINER", colorRole:"container", description:"Single deployable that serves the admin console (SSR), the signer flow (SSR), and the public REST API. Owns sync request handling, tenant scoping, RBAC, and transactional writes (including sync-path audit appends).", responsibility:"Serve user-facing UIs, expose REST API, enforce auth/RBAC/tenancy, write business state, and enqueue per-concern async jobs in-transaction.", technology:"Next.js + tRPC", confidence:"strong_inference" },
+    "container-pdf-pool":        { id:"container-pdf-pool", name:"PDF Sealing Pool", kind:"container", typeLabel:"CONTAINER", colorRole:"worker", description:"Worker pool dedicated to PDF sealing jobs. Subscribes only to the pdf-sealing pg-boss queue. CPU-bound; scales on CPU + queue depth on its own machine class.", responsibility:"Run pdf-sealing jobs in isolation from other async work.", technology:"Node + pg-boss + pdf-lib", confidence:"strong_inference" },
+    "container-webhook-pool":    { id:"container-webhook-pool", name:"Webhook Delivery Pool", kind:"container", typeLabel:"CONTAINER", colorRole:"worker", description:"Worker pool dedicated to outbound webhook delivery. Subscribes only to the webhook-delivery pg-boss queue. Retry-heavy I/O profile; isolated egress so a slow customer endpoint cannot starve other pools.", responsibility:"Deliver HMAC-signed webhooks with backoff, capped retries, and DLQ.", technology:"Node + pg-boss", confidence:"strong_inference" },
+    "container-audit-pool":      { id:"container-audit-pool", name:"Audit Pool", kind:"container", typeLabel:"CONTAINER", colorRole:"security", description:"Compliance-critical worker pool. Subscribes only to the audit pg-boss queue. Owns all hash-chain appends originating from async paths and runs the periodic chain-integrity verifier.", responsibility:"Single-writer hash-chain appends from async paths; periodic chain verification.", technology:"Node + pg-boss", confidence:"strong_inference" },
+    "container-notifications-pool":{ id:"container-notifications-pool", name:"Notifications Pool", kind:"container", typeLabel:"CONTAINER", colorRole:"worker", description:"Worker pool for email-shaped work: invitations, magic-link delivery, reminders, completion notices, and reminder/expiration scheduling. Subscribes only to the notifications pg-boss queue.", responsibility:"Deliver transactional email and drive timed reminders/expirations.", technology:"Node + pg-boss", confidence:"strong_inference" },
+    "container-postgres":        { id:"container-postgres", name:"Postgres", kind:"database", typeLabel:"DATABASE", colorRole:"data", description:"Single managed Postgres cluster acting as the canonical source of truth and as the host for the per-concern pg-boss queues. Row-level multi-tenancy enforced via tenant_id + RLS backstop. Append-only audit and signature tables enforced by a restricted DB role.", responsibility:"Persist all canonical business state; host the durable job queues for async work.", technology:"Postgres (Neon / RDS)", confidence:"strong_inference" },
+
+    /* Components — web monolith */
+    "comp-admin-ui":        { id:"comp-admin-ui", name:"Admin Console", kind:"component", typeLabel:"COMPONENT", colorRole:"component", description:"Server-rendered React UI for tenant admins to manage documents, templates, recipients, webhooks, members, and to view dashboards and audit trails.", responsibility:"Sender/admin experience surface.", technology:"Next.js (React, SSR)", confidence:"strong_inference" },
+    "comp-signer-ui":       { id:"comp-signer-ui", name:"Signer UI", kind:"component", typeLabel:"COMPONENT", colorRole:"component", description:"Server-rendered signer flow entered via magic link. Restricted to signer actions on a single document.", responsibility:"Render document and accept signer input; submit signature.", technology:"Next.js (React, SSR)", confidence:"strong_inference" },
+    "comp-rest-api":        { id:"comp-rest-api", name:"Public REST API", kind:"component", typeLabel:"COMPONENT", colorRole:"component", description:"Versioned REST/tRPC surface for customer integrations: create envelope, get status, list deliveries, manage webhooks.", responsibility:"Expose programmatic envelope and webhook management.", technology:"Next.js Route Handlers / tRPC", confidence:"strong_inference" },
+    "comp-tenant-rbac-mw":  { id:"comp-tenant-rbac-mw", name:"Tenancy + RBAC Middleware", kind:"component", typeLabel:"COMPONENT", colorRole:"security", description:"Request middleware that resolves the active tenant from the session, sets the Postgres session var driving RLS, and enforces role-based authorization on every protected route.", responsibility:"Enforce tenant isolation and RBAC at the request boundary.", technology:"TypeScript middleware", confidence:"strong_inference" },
+    "comp-auth":            { id:"comp-auth", name:"Auth Integration", kind:"component", typeLabel:"COMPONENT", colorRole:"security", description:"Handles WorkOS SSO callbacks for admin login and issues signed httpOnly session cookies.", responsibility:"Federate admin authentication via WorkOS; manage admin sessions.", technology:"WorkOS SDK", confidence:"strong_inference" },
+    "comp-magic-link":      { id:"comp-magic-link", name:"Magic-Link Service", kind:"component", typeLabel:"COMPONENT", colorRole:"security", description:"Mints, hashes, validates, and consumes single-use, short-TTL signer tokens scoped to (document_id, recipient_id).", responsibility:"Authenticate signers without account creation.", technology:"TypeScript", confidence:"strong_inference" },
+    "comp-document-svc":    { id:"comp-document-svc", name:"Document Service", kind:"component", typeLabel:"COMPONENT", colorRole:"component", description:"Domain module owning document and recipient CRUD, lifecycle transitions, and field placement.", responsibility:"Authoritative writes for document state.", technology:"TypeScript domain module", confidence:"strong_inference" },
+    "comp-template-svc":    { id:"comp-template-svc", name:"Template Service", kind:"component", typeLabel:"COMPONENT", colorRole:"component", description:"Domain module owning template versions and template-to-document instantiation.", responsibility:"Manage versioned templates.", technology:"TypeScript domain module", confidence:"strong_inference" },
+    "comp-signing-svc":     { id:"comp-signing-svc", name:"Signing Service", kind:"component", typeLabel:"COMPONENT", colorRole:"component", description:"Accepts signature submissions, writes the signature event, advances document state, and enqueues sealing, webhook, and notification jobs across the per-concern queues — all in one transaction.", responsibility:"Authoritative write for signature events.", technology:"TypeScript domain module", confidence:"strong_inference" },
+    "comp-audit-writer":    { id:"comp-audit-writer", name:"Audit Writer (sync)", kind:"component", typeLabel:"COMPONENT", colorRole:"security", description:"Synchronous, in-request, append-only writer for audit_events tied to user actions (e.g. signature submission). Computes prev_hash for the document's audit chain at write time. Async-path audit appends are routed to the audit pool instead.", responsibility:"Write hash-chained audit events for sync transitions inside the request transaction.", technology:"TypeScript domain module", confidence:"strong_inference" },
+    "comp-webhook-mgr":     { id:"comp-webhook-mgr", name:"Webhook Manager", kind:"component", typeLabel:"COMPONENT", colorRole:"component", description:"Owns webhook subscription configuration and creates webhook_delivery rows + enqueues delivery jobs onto the webhook-delivery queue, in-transaction with the originating business write.", responsibility:"Subscribe, fan out, and persist intent for webhook deliveries.", technology:"TypeScript domain module", confidence:"strong_inference" },
+
+    /* Components — pdf pool */
+    "comp-jobrunner-pdf":   { id:"comp-jobrunner-pdf", name:"PDF Job Runner", kind:"component", typeLabel:"COMPONENT", colorRole:"worker", description:"pg-boss runner for the pdf-sealing pool. Polls and locks pdf-sealing job rows and dispatches them to the PDF sealer.", responsibility:"Reliable, retry-aware dispatch of pdf-sealing jobs.", technology:"pg-boss", confidence:"strong_inference" },
+    "comp-pdf-sealer":      { id:"comp-pdf-sealer", name:"PDF Sealer", kind:"component", typeLabel:"COMPONENT", colorRole:"worker", description:"Job handler that flattens fields, embeds signature images, writes the sealed PDF to S3, and persists the SHA-256 of the sealed bytes on the document. CPU-bound work.", responsibility:"Produce the canonical signed PDF artifact.", technology:"pdf-lib (Node)", confidence:"strong_inference" },
+
+    /* Components — webhook pool */
+    "comp-jobrunner-webhook":{ id:"comp-jobrunner-webhook", name:"Webhook Job Runner", kind:"component", typeLabel:"COMPONENT", colorRole:"worker", description:"pg-boss runner for the webhook-delivery pool. Polls and locks webhook delivery jobs and dispatches them to the webhook deliverer.", responsibility:"Reliable, retry-aware dispatch of webhook delivery jobs.", technology:"pg-boss", confidence:"strong_inference" },
+    "comp-webhook-deliverer":{ id:"comp-webhook-deliverer", name:"Webhook Deliverer", kind:"component", typeLabel:"COMPONENT", colorRole:"worker", description:"Job handler that picks due webhook_delivery rows, HMAC-signs the payload, POSTs to customer URLs with timeout, and applies exponential backoff with jitter. Terminal failures land in a DLQ visible to admins for replay. The only worker with arbitrary outbound egress.", responsibility:"Reliable, signed, retry-bounded webhook delivery.", technology:"TypeScript handler", confidence:"strong_inference" },
+
+    /* Components — audit pool */
+    "comp-jobrunner-audit": { id:"comp-jobrunner-audit", name:"Audit Job Runner", kind:"component", typeLabel:"COMPONENT", colorRole:"security", description:"pg-boss runner for the audit pool. Polls and locks audit jobs and dispatches them to the async appender or chain finalizer.", responsibility:"Reliable, retry-aware dispatch of audit jobs.", technology:"pg-boss", confidence:"strong_inference" },
+    "comp-audit-async-appender":{ id:"comp-audit-async-appender", name:"Async Audit Appender", kind:"component", typeLabel:"COMPONENT", colorRole:"security", description:"Single-writer handler that consumes append_audit jobs from async paths (notifications, webhook delivery outcomes, sealing outcomes) and appends hash-chained audit_events. Keeping this in one pool avoids chain-ordering races between async writers.", responsibility:"Authoritative async-path audit append; preserve per-document chain ordering.", technology:"TypeScript handler", confidence:"strong_inference" },
+    "comp-audit-finalizer": { id:"comp-audit-finalizer", name:"Audit Finalizer", kind:"component", typeLabel:"COMPONENT", colorRole:"security", description:"Periodic job that walks each document's audit chain end-to-end and verifies hash-chain integrity, paging on-call on any break.", responsibility:"Continuous verification of the audit chain.", technology:"TypeScript handler", confidence:"strong_inference" },
+
+    /* Components — notifications pool */
+    "comp-jobrunner-notifications":{ id:"comp-jobrunner-notifications", name:"Notifications Job Runner", kind:"component", typeLabel:"COMPONENT", colorRole:"worker", description:"pg-boss runner for the notifications pool. Polls and locks notification jobs and dispatches them to email or reminder handlers.", responsibility:"Reliable, retry-aware dispatch of notification jobs.", technology:"pg-boss", confidence:"strong_inference" },
+    "comp-email-handler":   { id:"comp-email-handler", name:"Email Handler", kind:"component", typeLabel:"COMPONENT", colorRole:"worker", description:"Job handler that renders and sends transactional emails (invitations, magic links, reminders, completion notices) via the email provider, then enqueues the matching async audit append job.", responsibility:"Deliver transactional email.", technology:"TypeScript handler", confidence:"strong_inference" },
+    "comp-reminder-scheduler":{ id:"comp-reminder-scheduler", name:"Reminder Scheduler", kind:"component", typeLabel:"COMPONENT", colorRole:"worker", description:"Periodic job that re-enqueues invitation reminders based on per-tenant policy and expires stale magic links / documents.", responsibility:"Drive timed reminders and expirations.", technology:"TypeScript handler", confidence:"strong_inference" },
+
+    /* Deployment nodes */
+    "node-edge":              { id:"node-edge", name:"Edge / Load Balancer", kind:"deployment_node", typeLabel:"DEPLOYMENT NODE", colorRole:"deployment", description:"Managed edge / load balancer terminating TLS and routing inbound traffic to the web app.", responsibility:"TLS termination and request routing.", technology:"Fly.io / Render / Cloudflare", confidence:"weak_inference" },
+    "node-app":               { id:"node-app", name:"App Compute", kind:"deployment_node", typeLabel:"DEPLOYMENT NODE", colorRole:"deployment", description:"Container compute hosting the Next.js Web/API monolith, scaled horizontally on CPU/RAM.", responsibility:"Run the web/API process.", technology:"Fly Machines / Render Web Service", confidence:"weak_inference" },
+    "node-worker-pdf":        { id:"node-worker-pdf", name:"PDF Sealing Compute", kind:"deployment_node", typeLabel:"DEPLOYMENT NODE", colorRole:"deployment", description:"Compute pool sized for CPU-bound PDF sealing. Scales on CPU and queue depth.", responsibility:"Run the pdf-sealing worker pool.", technology:"Fly Machines (CPU class)", confidence:"weak_inference" },
+    "node-worker-webhook":    { id:"node-worker-webhook", name:"Webhook Delivery Compute", kind:"deployment_node", typeLabel:"DEPLOYMENT NODE", colorRole:"deployment", description:"Compute pool sized for I/O fanout. Many small instances tolerate slow customer endpoints without head-of-line blocking other concerns.", responsibility:"Run the webhook-delivery worker pool.", technology:"Fly Machines (small)", confidence:"weak_inference" },
+    "node-worker-audit":      { id:"node-worker-audit", name:"Audit Compute", kind:"deployment_node", typeLabel:"DEPLOYMENT NODE", colorRole:"deployment", description:"Small isolated compute pool with stricter monitoring and alert-on-error for compliance work.", responsibility:"Run the audit worker pool.", technology:"Fly Machines (small)", confidence:"weak_inference" },
+    "node-worker-notifications":{ id:"node-worker-notifications", name:"Notifications Compute", kind:"deployment_node", typeLabel:"DEPLOYMENT NODE", colorRole:"deployment", description:"Compute pool for email and reminder delivery.", responsibility:"Run the notifications worker pool.", technology:"Fly Machines (small)", confidence:"weak_inference" },
+    "node-db":                { id:"node-db", name:"Managed Postgres", kind:"deployment_node", typeLabel:"DEPLOYMENT NODE", colorRole:"deployment", description:"Managed Postgres instance with daily snapshots and point-in-time recovery (~7-14 days).", responsibility:"Host the primary DB and pg-boss queues.", technology:"Neon / Amazon RDS", confidence:"weak_inference" }
+  },
+
+  relationships: {
+    /* Context */
+    "rel-admin-uses-system":      { id:"rel-admin-uses-system", source:"person-admin", target:"system-doc-signing", label:"Authors and tracks envelopes", sync:"sync" },
+    "rel-signer-uses-system":     { id:"rel-signer-uses-system", source:"person-signer", target:"system-doc-signing", label:"Signs via magic link", sync:"sync" },
+    "rel-developer-uses-api":     { id:"rel-developer-uses-api", source:"person-developer", target:"system-doc-signing", label:"Calls REST API; receives webhooks", sync:"sync" },
+    "rel-system-uses-workos":     { id:"rel-system-uses-workos", source:"system-doc-signing", target:"ext-workos", label:"Authenticates admins (SSO/SCIM)", sync:"sync" },
+    "rel-system-uses-email":      { id:"rel-system-uses-email", source:"system-doc-signing", target:"ext-email", label:"Sends transactional email", sync:"async" },
+    "rel-system-uses-s3":         { id:"rel-system-uses-s3", source:"system-doc-signing", target:"ext-s3", label:"Stores PDFs and assets", sync:"storage" },
+    "rel-system-fires-webhooks":  { id:"rel-system-fires-webhooks", source:"system-doc-signing", target:"ext-customer-system", label:"Delivers signed webhook callbacks", sync:"async" },
+
+    /* Container */
+    "rel-admin-to-web":           { id:"rel-admin-to-web", source:"person-admin", target:"container-web", label:"Admin console (HTTPS)", sync:"sync" },
+    "rel-signer-to-web":          { id:"rel-signer-to-web", source:"person-signer", target:"container-web", label:"Signer flow via magic link", sync:"sync" },
+    "rel-developer-to-web":       { id:"rel-developer-to-web", source:"person-developer", target:"container-web", label:"REST API calls", sync:"sync" },
+    "rel-web-to-workos":          { id:"rel-web-to-workos", source:"container-web", target:"ext-workos", label:"Federated admin login", sync:"sync" },
+    "rel-web-to-postgres":        { id:"rel-web-to-postgres", source:"container-web", target:"container-postgres", label:"Transactional reads/writes", sync:"sync" },
+    "rel-web-to-s3":              { id:"rel-web-to-s3", source:"container-web", target:"ext-s3", label:"Upload raw PDFs; signed URLs", sync:"storage" },
+    "rel-web-enqueues-jobs":      { id:"rel-web-enqueues-jobs", source:"container-web", target:"container-postgres", label:"Enqueue per-concern jobs", sync:"async" },
+    "rel-pdf-pool-to-postgres":   { id:"rel-pdf-pool-to-postgres", source:"container-pdf-pool", target:"container-postgres", label:"Poll queue; persist sealed SHA-256", sync:"sync" },
+    "rel-pdf-pool-to-s3":         { id:"rel-pdf-pool-to-s3", source:"container-pdf-pool", target:"ext-s3", label:"Write sealed PDFs", sync:"storage" },
+    "rel-pdf-pool-to-audit-queue":{ id:"rel-pdf-pool-to-audit-queue", source:"container-pdf-pool", target:"container-postgres", label:"Enqueue append_audit", sync:"async" },
+    "rel-webhook-pool-to-postgres":{id:"rel-webhook-pool-to-postgres", source:"container-webhook-pool", target:"container-postgres", label:"Poll queue; update delivery / DLQ", sync:"sync" },
+    "rel-webhook-pool-to-customer":{id:"rel-webhook-pool-to-customer", source:"container-webhook-pool", target:"ext-customer-system", label:"HMAC POST (retry/DLQ)", sync:"async" },
+    "rel-webhook-pool-to-audit-queue":{id:"rel-webhook-pool-to-audit-queue", source:"container-webhook-pool", target:"container-postgres", label:"Enqueue append_audit", sync:"async" },
+    "rel-audit-pool-to-postgres": { id:"rel-audit-pool-to-postgres", source:"container-audit-pool", target:"container-postgres", label:"Append + verify audit_events", sync:"sync" },
+    "rel-notifications-pool-to-postgres":{id:"rel-notifications-pool-to-postgres", source:"container-notifications-pool", target:"container-postgres", label:"Poll queue; expire stale tokens", sync:"sync" },
+    "rel-notifications-pool-to-email":{id:"rel-notifications-pool-to-email", source:"container-notifications-pool", target:"ext-email", label:"Send transactional email", sync:"async" },
+    "rel-notifications-pool-to-audit-queue":{id:"rel-notifications-pool-to-audit-queue", source:"container-notifications-pool", target:"container-postgres", label:"Enqueue append_audit", sync:"async" },
+
+    /* Component — monolith */
+    "rel-adminui-to-restapi":     { id:"rel-adminui-to-restapi", source:"comp-admin-ui", target:"comp-rest-api", label:"Same-process calls", sync:"sync" },
+    "rel-restapi-to-mw":          { id:"rel-restapi-to-mw", source:"comp-rest-api", target:"comp-tenant-rbac-mw", label:"Wraps every protected route", sync:"sync" },
+    "rel-mw-to-auth":             { id:"rel-mw-to-auth", source:"comp-tenant-rbac-mw", target:"comp-auth", label:"Resolves admin session", sync:"sync" },
+    "rel-signerui-to-magic":      { id:"rel-signerui-to-magic", source:"comp-signer-ui", target:"comp-magic-link", label:"Validate signer token", sync:"sync" },
+    "rel-mw-to-document":         { id:"rel-mw-to-document", source:"comp-tenant-rbac-mw", target:"comp-document-svc", label:"Authorized writes", sync:"sync" },
+    "rel-mw-to-template":         { id:"rel-mw-to-template", source:"comp-tenant-rbac-mw", target:"comp-template-svc", label:"Authorized writes", sync:"sync" },
+    "rel-signerui-to-signing":    { id:"rel-signerui-to-signing", source:"comp-signer-ui", target:"comp-signing-svc", label:"Submit signature", sync:"sync" },
+    "rel-signing-to-audit":       { id:"rel-signing-to-audit", source:"comp-signing-svc", target:"comp-audit-writer", label:"Append audit (in-tx)", sync:"sync" },
+    "rel-document-to-audit":      { id:"rel-document-to-audit", source:"comp-document-svc", target:"comp-audit-writer", label:"Append audit (in-tx)", sync:"sync" },
+    "rel-signing-to-webhookmgr":  { id:"rel-signing-to-webhookmgr", source:"comp-signing-svc", target:"comp-webhook-mgr", label:"Enqueue webhook (in-tx)", sync:"sync" },
+    "rel-document-svc-to-pg":     { id:"rel-document-svc-to-pg", source:"comp-document-svc", target:"container-postgres", label:"Persist documents", sync:"sync" },
+    "rel-template-svc-to-pg":     { id:"rel-template-svc-to-pg", source:"comp-template-svc", target:"container-postgres", label:"Persist templates", sync:"sync" },
+    "rel-signing-to-pg":          { id:"rel-signing-to-pg", source:"comp-signing-svc", target:"container-postgres", label:"Append signature_events", sync:"sync" },
+    "rel-audit-to-pg":            { id:"rel-audit-to-pg", source:"comp-audit-writer", target:"container-postgres", label:"Append audit_events (sync)", sync:"sync" },
+    "rel-webhookmgr-to-pg":       { id:"rel-webhookmgr-to-pg", source:"comp-webhook-mgr", target:"container-postgres", label:"Persist + enqueue", sync:"sync" },
+    "rel-magic-to-pg":            { id:"rel-magic-to-pg", source:"comp-magic-link", target:"container-postgres", label:"Issue/consume tokens", sync:"sync" },
+    "rel-auth-to-workos":         { id:"rel-auth-to-workos", source:"comp-auth", target:"ext-workos", label:"OIDC/SAML callback", sync:"sync" },
+
+    /* Component — pdf pool */
+    "rel-jobrunner-pdf-to-pg":    { id:"rel-jobrunner-pdf-to-pg", source:"comp-jobrunner-pdf", target:"container-postgres", label:"Poll/lock queue rows", sync:"sync" },
+    "rel-jobrunner-pdf-dispatch": { id:"rel-jobrunner-pdf-dispatch", source:"comp-jobrunner-pdf", target:"comp-pdf-sealer", label:"Dispatch sealing jobs", sync:"sync" },
+    "rel-pdfsealer-to-s3":        { id:"rel-pdfsealer-to-s3", source:"comp-pdf-sealer", target:"ext-s3", label:"Write sealed PDF", sync:"storage" },
+    "rel-pdfsealer-to-pg":        { id:"rel-pdfsealer-to-pg", source:"comp-pdf-sealer", target:"container-postgres", label:"Persist SHA-256 + state", sync:"sync" },
+    "rel-pdfsealer-enqueue-audit":{ id:"rel-pdfsealer-enqueue-audit", source:"comp-pdf-sealer", target:"container-postgres", label:"Enqueue append_audit", sync:"async" },
+
+    /* Component — webhook pool */
+    "rel-jobrunner-webhook-to-pg":{ id:"rel-jobrunner-webhook-to-pg", source:"comp-jobrunner-webhook", target:"container-postgres", label:"Poll/lock queue rows", sync:"sync" },
+    "rel-jobrunner-webhook-dispatch":{ id:"rel-jobrunner-webhook-dispatch", source:"comp-jobrunner-webhook", target:"comp-webhook-deliverer", label:"Dispatch delivery jobs", sync:"sync" },
+    "rel-webhookdeliverer-to-customer":{id:"rel-webhookdeliverer-to-customer", source:"comp-webhook-deliverer", target:"ext-customer-system", label:"HMAC POST (retry/DLQ)", sync:"async" },
+    "rel-webhookdeliverer-to-pg": { id:"rel-webhookdeliverer-to-pg", source:"comp-webhook-deliverer", target:"container-postgres", label:"Update delivery / DLQ", sync:"sync" },
+    "rel-webhookdeliverer-enqueue-audit":{id:"rel-webhookdeliverer-enqueue-audit", source:"comp-webhook-deliverer", target:"container-postgres", label:"Enqueue append_audit", sync:"async" },
+
+    /* Component — audit pool */
+    "rel-jobrunner-audit-to-pg":  { id:"rel-jobrunner-audit-to-pg", source:"comp-jobrunner-audit", target:"container-postgres", label:"Poll/lock queue rows", sync:"sync" },
+    "rel-jobrunner-audit-dispatch-appender":{id:"rel-jobrunner-audit-dispatch-appender", source:"comp-jobrunner-audit", target:"comp-audit-async-appender", label:"Dispatch append jobs", sync:"sync" },
+    "rel-jobrunner-audit-dispatch-finalizer":{id:"rel-jobrunner-audit-dispatch-finalizer", source:"comp-jobrunner-audit", target:"comp-audit-finalizer", label:"Dispatch verify jobs", sync:"sync" },
+    "rel-audit-async-appender-to-pg":{ id:"rel-audit-async-appender-to-pg", source:"comp-audit-async-appender", target:"container-postgres", label:"Append audit_events (async)", sync:"sync" },
+    "rel-auditfinalizer-to-pg":   { id:"rel-auditfinalizer-to-pg", source:"comp-audit-finalizer", target:"container-postgres", label:"Verify hash chain", sync:"sync" },
+
+    /* Component — notifications pool */
+    "rel-jobrunner-notifications-to-pg":{id:"rel-jobrunner-notifications-to-pg", source:"comp-jobrunner-notifications", target:"container-postgres", label:"Poll/lock queue rows", sync:"sync" },
+    "rel-jobrunner-notifications-dispatch-email":{id:"rel-jobrunner-notifications-dispatch-email", source:"comp-jobrunner-notifications", target:"comp-email-handler", label:"Dispatch email jobs", sync:"sync" },
+    "rel-jobrunner-notifications-dispatch-reminder":{id:"rel-jobrunner-notifications-dispatch-reminder", source:"comp-jobrunner-notifications", target:"comp-reminder-scheduler", label:"Dispatch reminder jobs", sync:"sync" },
+    "rel-email-to-emailprovider": { id:"rel-email-to-emailprovider", source:"comp-email-handler", target:"ext-email", label:"Send transactional email", sync:"sync" },
+    "rel-email-enqueue-audit":    { id:"rel-email-enqueue-audit", source:"comp-email-handler", target:"container-postgres", label:"Enqueue append_audit", sync:"async" },
+    "rel-reminder-to-pg":         { id:"rel-reminder-to-pg", source:"comp-reminder-scheduler", target:"container-postgres", label:"Re-enqueue / expire", sync:"sync" },
+
+    /* Deployment */
+    "rel-edge-routes-app":        { id:"rel-edge-routes-app", source:"node-edge", target:"node-app", label:"Routes inbound HTTPS", sync:"sync" },
+    "rel-app-deploys-web":        { id:"rel-app-deploys-web", source:"container-web", target:"node-app", label:"Deploys to", sync:"sync" },
+    "rel-pdf-pool-deploys":       { id:"rel-pdf-pool-deploys", source:"container-pdf-pool", target:"node-worker-pdf", label:"Deploys to", sync:"sync" },
+    "rel-webhook-pool-deploys":   { id:"rel-webhook-pool-deploys", source:"container-webhook-pool", target:"node-worker-webhook", label:"Deploys to", sync:"sync" },
+    "rel-audit-pool-deploys":     { id:"rel-audit-pool-deploys", source:"container-audit-pool", target:"node-worker-audit", label:"Deploys to", sync:"sync" },
+    "rel-notifications-pool-deploys":{id:"rel-notifications-pool-deploys", source:"container-notifications-pool", target:"node-worker-notifications", label:"Deploys to", sync:"sync" },
+    "rel-pg-deploys-db-node":     { id:"rel-pg-deploys-db-node", source:"container-postgres", target:"node-db", label:"Hosted on", sync:"sync" }
+  }
+};
+
+/* ---------------------------------------------------------------------------
+   View definitions — each layer has explicit node coordinates and edge routes
+   --------------------------------------------------------------------------- */
+
+/* Color helper for node fills/strokes */
+function rolePalette(role) {
+  const m = {
+    person:     { fill:"var(--c-person-bg)",     stroke:"var(--c-person-stroke)",     text:"var(--c-person)",     header:"var(--c-person)" },
+    system:     { fill:"var(--c-system-bg)",     stroke:"var(--c-system-stroke)",     text:"var(--c-system)",     header:"var(--c-system)" },
+    container:  { fill:"var(--c-container-bg)",  stroke:"var(--c-container-stroke)",  text:"var(--c-container)",  header:"var(--c-container)" },
+    component:  { fill:"var(--c-component-bg)",  stroke:"var(--c-component-stroke)",  text:"var(--c-component)",  header:"var(--c-component)" },
+    worker:     { fill:"var(--c-worker-bg)",     stroke:"var(--c-worker-stroke)",     text:"var(--c-worker)",     header:"var(--c-worker)" },
+    security:   { fill:"var(--c-security-bg)",   stroke:"var(--c-security-stroke)",   text:"var(--c-security)",   header:"var(--c-security)" },
+    data:       { fill:"var(--c-data-bg)",       stroke:"var(--c-data-stroke)",       text:"var(--c-data)",       header:"var(--c-data)" },
+    external:   { fill:"var(--c-external-bg)",   stroke:"var(--c-external-stroke)",   text:"var(--c-external)",   header:"var(--c-external)" },
+    deployment: { fill:"var(--c-deployment-bg)", stroke:"var(--c-deployment-stroke)", text:"var(--c-deployment)", header:"var(--c-deployment)" }
+  };
+  return m[role] || m.component;
+}
+
+/* ---------------------------------------------------------------------------
+   View layouts — coordinates carefully chosen so edges route through channels
+   without crossing nodes, and labels do not stack.
+   --------------------------------------------------------------------------- */
+const VIEWS = {
+  "view-system-context": {
+    id: "view-system-context",
+    title: "System context",
+    width: 1240, height: 720,
+    nodes: [
+      // Left column: people
+      { id:"person-admin",     x:60,  y:80,  w:200, h:90 },
+      { id:"person-signer",    x:60,  y:300, w:200, h:90 },
+      { id:"person-developer", x:60,  y:520, w:200, h:90 },
+      // Center: the system (drillable)
+      { id:"system-doc-signing", x:480, y:280, w:280, h:130 },
+      // Right column: external systems
+      { id:"ext-workos",          x:980, y:60,  w:200, h:90 },
+      { id:"ext-email",           x:980, y:220, w:200, h:90 },
+      { id:"ext-s3",              x:980, y:380, w:200, h:90 },
+      { id:"ext-customer-system", x:980, y:540, w:200, h:90 }
+    ],
+    boundaries: [
+      { label:"Document Signing Platform boundary", x:430, y:230, w:380, h:230 }
+    ],
+    edges: [
+      // Admin → System
+      { id:"rel-admin-uses-system",   path:[[260,125],[370,125],[370,310],[480,310]], labelAt:[370,118], labelText:"Authors envelopes" },
+      // Signer → System
+      { id:"rel-signer-uses-system",  path:[[260,345],[480,345]], labelAt:[370,338], labelText:"Signs via magic link" },
+      // Developer → System
+      { id:"rel-developer-uses-api",  path:[[260,565],[370,565],[370,380],[480,380]], labelAt:[370,558], labelText:"Calls REST API; webhooks" },
+      // System → WorkOS
+      { id:"rel-system-uses-workos",  path:[[760,295],[870,295],[870,105],[980,105]], labelAt:[870,288], labelText:"SSO / SCIM" },
+      // System → Email
+      { id:"rel-system-uses-email",   path:[[760,320],[920,320],[920,265],[980,265]], labelAt:[870,312], labelText:"Transactional email" },
+      // System → S3
+      { id:"rel-system-uses-s3",      path:[[760,345],[920,345],[920,425],[980,425]], labelAt:[870,418], labelText:"PDFs and assets" },
+      // System → Customer
+      { id:"rel-system-fires-webhooks", path:[[760,380],[870,380],[870,585],[980,585]], labelAt:[870,578], labelText:"HMAC webhooks" }
+    ],
+    drillable: { "system-doc-signing":"view-container" }
+  },
+
+  "view-container": {
+    id: "view-container",
+    title: "Container",
+    width: 1500, height: 940,
+    nodes: [
+      // People (left column)
+      { id:"person-admin",     x:40,  y:60,  w:180, h:80 },
+      { id:"person-signer",    x:40,  y:180, w:180, h:80 },
+      { id:"person-developer", x:40,  y:300, w:180, h:80 },
+      // WorkOS (top-right)
+      { id:"ext-workos",          x:1280, y:60,  w:180, h:80 },
+      // Web monolith (top-middle)
+      { id:"container-web",       x:560, y:130, w:260, h:110 },
+      // Worker pools (middle row, evenly spaced with 40px gutters)
+      { id:"container-pdf-pool",          x:280,  y:430, w:200, h:100 },
+      { id:"container-webhook-pool",      x:520,  y:430, w:200, h:100 },
+      { id:"container-audit-pool",        x:760,  y:430, w:200, h:100 },
+      { id:"container-notifications-pool",x:1000, y:430, w:200, h:100 },
+      // Postgres (bottom-center)
+      { id:"container-postgres",  x:600, y:780, w:260, h:100 },
+      // External right column
+      { id:"ext-email",           x:1280, y:430, w:180, h:80 },
+      { id:"ext-customer-system", x:1280, y:600, w:180, h:80 },
+      { id:"ext-s3",              x:1280, y:790, w:180, h:80 }
+    ],
+    boundaries: [
+      { label:"Document Signing Platform boundary", x:260, y:100, w:980, h:700 }
+    ],
+    edges: [
+      // ----- People → Web -----
+      { id:"rel-admin-to-web",      path:[[220,100],[400,100],[400,160],[560,160]], labelAt:[470,92], labelText:"Admin (HTTPS)" },
+      { id:"rel-signer-to-web",     path:[[220,220],[440,220],[440,185],[560,185]], labelAt:[460,178], labelText:"Signer flow" },
+      { id:"rel-developer-to-web",  path:[[220,340],[480,340],[480,210],[560,210]], labelAt:[490,332], labelText:"REST API" },
+      // ----- Web → WorkOS (top-right channel) -----
+      { id:"rel-web-to-workos",     path:[[820,160],[1240,160],[1240,100],[1280,100]], labelAt:[1050,152], labelText:"Federated login" },
+      // ----- Web → Postgres -----
+      { id:"rel-web-to-postgres",   path:[[640,240],[640,740],[680,740],[680,780]], labelAt:[612,500], labelText:"Reads/writes" },
+      // ----- Web → enqueue jobs -----
+      { id:"rel-web-enqueues-jobs", path:[[740,240],[740,740],[730,740],[730,780]], labelAt:[762,500], labelText:"Enqueue jobs" },
+      // ----- Web → S3 (far-right channel x=1240) -----
+      { id:"rel-web-to-s3",         path:[[820,225],[1240,225],[1240,830],[1280,830]], labelAt:[1050,217], labelText:"Raw PDFs" },
+      // ----- pdf-pool → Postgres -----
+      { id:"rel-pdf-pool-to-postgres",    path:[[380,530],[380,620],[640,620],[640,780]], labelAt:[470,612], labelText:"Poll; persist SHA-256" },
+      // ----- pdf-pool → S3 (route down via channel y=560 then right then down) -----
+      { id:"rel-pdf-pool-to-s3",          path:[[400,530],[400,560],[1260,560],[1260,830],[1280,830]], labelAt:[830,552], labelText:"Sealed PDFs" },
+      // ----- pdf-pool → audit-queue (postgres) -----
+      { id:"rel-pdf-pool-to-audit-queue", path:[[420,530],[420,660],[660,660],[660,780]], labelAt:[490,652], labelText:"Enqueue append_audit" },
+      // ----- webhook-pool → Postgres -----
+      { id:"rel-webhook-pool-to-postgres",    path:[[600,530],[600,640],[680,640],[680,780]], labelAt:[640,632], labelText:"Poll; update delivery" },
+      // ----- webhook-pool → customer (down then right then up to avoid worker row) -----
+      { id:"rel-webhook-pool-to-customer",    path:[[700,530],[700,580],[1250,580],[1250,640],[1280,640]], labelAt:[975,572], labelText:"HMAC POST" },
+      // ----- webhook-pool → audit queue -----
+      { id:"rel-webhook-pool-to-audit-queue", path:[[640,530],[640,680],[700,680],[700,780]], labelAt:[660,672], labelText:"Enqueue append_audit" },
+      // ----- audit-pool → Postgres -----
+      { id:"rel-audit-pool-to-postgres",      path:[[860,530],[860,640],[770,640],[770,780]], labelAt:[820,632], labelText:"Append + verify" },
+      // ----- notifications-pool → Postgres -----
+      { id:"rel-notifications-pool-to-postgres",    path:[[1080,530],[1080,690],[820,690],[820,780]], labelAt:[950,682], labelText:"Poll; expire tokens" },
+      // ----- notifications-pool → email -----
+      { id:"rel-notifications-pool-to-email",       path:[[1200,470],[1280,470]], labelAt:[1240,462], labelText:"Send email" },
+      // ----- notifications-pool → audit queue -----
+      { id:"rel-notifications-pool-to-audit-queue", path:[[1100,530],[1100,720],[840,720],[840,780]], labelAt:[970,712], labelText:"Enqueue append_audit" }
+    ],
+    drillable: {
+      "container-web":"view-component-monolith",
+      "container-pdf-pool":"view-component-pdf-pool",
+      "container-webhook-pool":"view-component-webhook-pool",
+      "container-audit-pool":"view-component-audit-pool",
+      "container-notifications-pool":"view-component-notifications-pool"
+    }
+  },
+
+  "view-component-monolith": {
+    id: "view-component-monolith",
+    title: "Web / API Monolith",
+    width: 1400, height: 880,
+    nodes: [
+      // UIs and API surface (top)
+      { id:"comp-admin-ui",   x:60,  y:60,  w:200, h:90 },
+      { id:"comp-signer-ui",  x:60,  y:200, w:200, h:90 },
+      { id:"comp-rest-api",   x:60,  y:340, w:200, h:90 },
+      // Security/middleware (mid-left)
+      { id:"comp-tenant-rbac-mw", x:380, y:340, w:220, h:90 },
+      { id:"comp-auth",           x:380, y:60,  w:220, h:90 },
+      { id:"comp-magic-link",     x:380, y:200, w:220, h:90 },
+      // Domain modules (mid-right)
+      { id:"comp-document-svc",   x:720, y:60,  w:220, h:90 },
+      { id:"comp-template-svc",   x:720, y:200, w:220, h:90 },
+      { id:"comp-signing-svc",    x:720, y:340, w:220, h:90 },
+      { id:"comp-audit-writer",   x:720, y:480, w:220, h:90 },
+      { id:"comp-webhook-mgr",    x:720, y:620, w:220, h:90 },
+      // External: workos top-right
+      { id:"ext-workos",          x:1080, y:60, w:200, h:90 },
+      // Postgres bottom
+      { id:"container-postgres",  x:480, y:760, w:280, h:90 }
+    ],
+    boundaries: [
+      { label:"container-web boundary", x:30, y:20, w:1020, h:720 }
+    ],
+    edges: [
+      // admin-ui → rest-api
+      { id:"rel-adminui-to-restapi", path:[[160,150],[160,340]], labelAt:[180,250], labelText:"in-process" },
+      // rest-api → mw
+      { id:"rel-restapi-to-mw",      path:[[260,385],[380,385]], labelAt:[320,378], labelText:"wraps routes" },
+      // mw → auth
+      { id:"rel-mw-to-auth",         path:[[490,340],[490,150]], labelAt:[510,250], labelText:"resolve session" },
+      // signer-ui → magic-link
+      { id:"rel-signerui-to-magic",  path:[[260,245],[380,245]], labelAt:[320,238], labelText:"validate token" },
+      // mw → document-svc
+      { id:"rel-mw-to-document",     path:[[600,360],[660,360],[660,105],[720,105]], labelAt:[660,90], labelText:"writes" },
+      // mw → template-svc
+      { id:"rel-mw-to-template",     path:[[600,385],[680,385],[680,245],[720,245]], labelAt:[680,238], labelText:"writes" },
+      // signer-ui → signing-svc
+      { id:"rel-signerui-to-signing",path:[[260,225],[330,225],[330,300],[700,300],[700,365],[720,365]], labelAt:[450,292], labelText:"submit signature" },
+      // signing-svc → audit-writer
+      { id:"rel-signing-to-audit",   path:[[830,430],[830,480]], labelAt:[860,455], labelText:"append (in-tx)" },
+      // document-svc → audit-writer
+      { id:"rel-document-to-audit",  path:[[900,150],[960,150],[960,510],[940,510]], labelAt:[955,330], labelText:"append (in-tx)" },
+      // signing-svc → webhook-mgr
+      { id:"rel-signing-to-webhookmgr", path:[[770,430],[770,620]], labelAt:[795,520], labelText:"enqueue webhook" },
+      // document-svc → pg (right channel x=970)
+      { id:"rel-document-svc-to-pg", path:[[940,105],[970,105],[970,750],[540,750],[540,760]], labelAt:[750,742], labelText:"persist documents" },
+      // template-svc → pg (right channel x=985)
+      { id:"rel-template-svc-to-pg", path:[[940,245],[985,245],[985,765],[580,765],[580,760]], labelAt:[700,757], labelText:"persist templates" },
+      // signing-svc → pg (right channel x=1000)
+      { id:"rel-signing-to-pg",      path:[[940,385],[1000,385],[1000,778],[620,778],[620,760]], labelAt:[820,770], labelText:"signature_events" },
+      // audit-writer → pg (via right channel x=1015 to clear webhook-mgr)
+      { id:"rel-audit-to-pg",        path:[[940,525],[1015,525],[1015,760],[660,760]], labelAt:[845,517], labelText:"audit_events (sync)" },
+      // webhook-mgr → pg
+      { id:"rel-webhookmgr-to-pg",   path:[[770,710],[770,745],[700,745],[700,760]], labelAt:[740,737], labelText:"persist + enqueue" },
+      // magic-link → pg
+      { id:"rel-magic-to-pg",        path:[[490,290],[490,760]], labelAt:[510,540], labelText:"tokens" },
+      // auth → workos
+      { id:"rel-auth-to-workos",     path:[[600,105],[1080,105]], labelAt:[840,98], labelText:"OIDC/SAML" }
+    ],
+    drillable: {}
+  },
+
+  "view-component-pdf-pool": {
+    id: "view-component-pdf-pool",
+    title: "PDF Sealing Pool",
+    width: 1100, height: 600,
+    nodes: [
+      { id:"comp-jobrunner-pdf",  x:80,  y:240, w:220, h:100 },
+      { id:"comp-pdf-sealer",     x:440, y:240, w:220, h:100 },
+      { id:"container-postgres",  x:440, y:60,  w:220, h:90 },
+      { id:"ext-s3",              x:800, y:240, w:220, h:100 }
+    ],
+    boundaries: [
+      { label:"container-pdf-pool boundary", x:50, y:200, w:620, h:200 }
+    ],
+    edges: [
+      // jobrunner → pg (poll)
+      { id:"rel-jobrunner-pdf-to-pg",    path:[[190,240],[190,180],[470,180],[470,150]], labelAt:[330,172], labelText:"poll/lock" },
+      // jobrunner → sealer
+      { id:"rel-jobrunner-pdf-dispatch", path:[[300,290],[440,290]], labelAt:[370,283], labelText:"dispatch" },
+      // sealer → s3
+      { id:"rel-pdfsealer-to-s3",        path:[[660,290],[800,290]], labelAt:[730,283], labelText:"write sealed PDF" },
+      // sealer → pg (sealed sha)
+      { id:"rel-pdfsealer-to-pg",        path:[[550,240],[550,150]], labelAt:[575,195], labelText:"persist SHA-256" },
+      // sealer → pg (audit enqueue)
+      { id:"rel-pdfsealer-enqueue-audit",path:[[600,240],[600,170],[630,170],[630,150]], labelAt:[640,162], labelText:"enqueue append_audit" }
+    ],
+    drillable: {}
+  },
+
+  "view-component-webhook-pool": {
+    id: "view-component-webhook-pool",
+    title: "Webhook Delivery Pool",
+    width: 1100, height: 600,
+    nodes: [
+      { id:"comp-jobrunner-webhook", x:80,  y:240, w:220, h:100 },
+      { id:"comp-webhook-deliverer", x:440, y:240, w:220, h:100 },
+      { id:"container-postgres",     x:440, y:60,  w:220, h:90 },
+      { id:"ext-customer-system",    x:800, y:240, w:220, h:100 }
+    ],
+    boundaries: [
+      { label:"container-webhook-pool boundary", x:50, y:200, w:620, h:200 }
+    ],
+    edges: [
+      { id:"rel-jobrunner-webhook-to-pg",      path:[[190,240],[190,180],[470,180],[470,150]], labelAt:[330,172], labelText:"poll/lock" },
+      { id:"rel-jobrunner-webhook-dispatch",   path:[[300,290],[440,290]], labelAt:[370,283], labelText:"dispatch" },
+      { id:"rel-webhookdeliverer-to-customer", path:[[660,290],[800,290]], labelAt:[730,283], labelText:"HMAC POST" },
+      { id:"rel-webhookdeliverer-to-pg",       path:[[540,240],[540,150]], labelAt:[565,195], labelText:"update delivery" },
+      { id:"rel-webhookdeliverer-enqueue-audit", path:[[600,240],[600,170],[630,170],[630,150]], labelAt:[640,162], labelText:"enqueue append_audit" }
+    ],
+    drillable: {}
+  },
+
+  "view-component-audit-pool": {
+    id: "view-component-audit-pool",
+    title: "Audit Pool",
+    width: 1100, height: 640,
+    nodes: [
+      { id:"comp-jobrunner-audit",         x:80,  y:280, w:220, h:100 },
+      { id:"comp-audit-async-appender",    x:440, y:160, w:240, h:100 },
+      { id:"comp-audit-finalizer",         x:440, y:400, w:240, h:100 },
+      { id:"container-postgres",           x:800, y:280, w:220, h:100 }
+    ],
+    boundaries: [
+      { label:"container-audit-pool boundary", x:50, y:120, w:660, h:420 }
+    ],
+    edges: [
+      { id:"rel-jobrunner-audit-to-pg",                path:[[300,310],[760,310]], labelAt:[530,302], labelText:"poll/lock" },
+      { id:"rel-jobrunner-audit-dispatch-appender",    path:[[300,310],[370,310],[370,210],[440,210]], labelAt:[370,250], labelText:"dispatch append" },
+      { id:"rel-jobrunner-audit-dispatch-finalizer",   path:[[300,350],[370,350],[370,450],[440,450]], labelAt:[370,400], labelText:"dispatch verify" },
+      { id:"rel-audit-async-appender-to-pg",           path:[[680,210],[760,210],[760,310]], labelAt:[760,200], labelText:"append audit_events" },
+      { id:"rel-auditfinalizer-to-pg",                 path:[[680,450],[760,450],[760,360]], labelAt:[760,460], labelText:"verify chain" }
+    ],
+    drillable: {}
+  },
+
+  "view-component-notifications-pool": {
+    id: "view-component-notifications-pool",
+    title: "Notifications Pool",
+    width: 1200, height: 640,
+    nodes: [
+      { id:"comp-jobrunner-notifications", x:60,  y:280, w:240, h:100 },
+      { id:"comp-email-handler",           x:440, y:160, w:240, h:100 },
+      { id:"comp-reminder-scheduler",      x:440, y:400, w:240, h:100 },
+      { id:"container-postgres",           x:820, y:400, w:240, h:100 },
+      { id:"ext-email",                    x:820, y:160, w:240, h:100 }
+    ],
+    boundaries: [
+      { label:"container-notifications-pool boundary", x:30, y:120, w:680, h:420 }
+    ],
+    edges: [
+      { id:"rel-jobrunner-notifications-to-pg",            path:[[300,360],[400,360],[400,540],[940,540],[940,500]], labelAt:[640,532], labelText:"poll/lock" },
+      { id:"rel-jobrunner-notifications-dispatch-email",   path:[[300,310],[370,310],[370,210],[440,210]], labelAt:[370,250], labelText:"dispatch email" },
+      { id:"rel-jobrunner-notifications-dispatch-reminder",path:[[300,350],[370,350],[370,450],[440,450]], labelAt:[370,400], labelText:"dispatch reminder" },
+      { id:"rel-email-to-emailprovider",                   path:[[680,210],[820,210]], labelAt:[750,202], labelText:"send email" },
+      { id:"rel-email-enqueue-audit",                      path:[[660,260],[660,310],[760,310],[760,420],[820,420]], labelAt:[760,302], labelText:"enqueue append_audit" },
+      { id:"rel-reminder-to-pg",                           path:[[680,450],[820,450]], labelAt:[750,442], labelText:"re-enqueue / expire" }
+    ],
+    drillable: {}
+  },
+
+  "view-deployment": {
+    id: "view-deployment",
+    title: "Deployment",
+    width: 1480, height: 760,
+    nodes: [
+      { id:"node-edge",                x:60,  y:60,  w:220, h:100 },
+      { id:"node-app",                 x:380, y:60,  w:220, h:100 },
+      // Worker compute row
+      { id:"node-worker-pdf",          x:60,  y:240, w:220, h:100 },
+      { id:"node-worker-webhook",      x:340, y:240, w:220, h:100 },
+      { id:"node-worker-audit",        x:620, y:240, w:220, h:100 },
+      { id:"node-worker-notifications",x:900, y:240, w:220, h:100 },
+      // Containers (deployed-to)
+      { id:"container-web",            x:380, y:420, w:220, h:90 },
+      { id:"container-pdf-pool",       x:60,  y:420, w:220, h:90 },
+      { id:"container-webhook-pool",   x:340, y:420, w:220, h:90 },
+      { id:"container-audit-pool",     x:620, y:420, w:220, h:90 },
+      { id:"container-notifications-pool", x:900, y:420, w:220, h:90 },
+      // DB column on right
+      { id:"container-postgres",       x:1200, y:120, w:220, h:100 },
+      { id:"node-db",                  x:1200, y:540, w:220, h:100 }
+    ],
+    boundaries: [
+      { label:"Single-region (US) production", x:30, y:30, w:1410, h:710 }
+    ],
+    edges: [
+      { id:"rel-edge-routes-app",     path:[[280,110],[380,110]], labelAt:[330,102], labelText:"routes inbound" },
+      { id:"rel-app-deploys-web",     path:[[490,510],[490,160]], labelAt:[510,335], labelText:"deploys to" },
+      { id:"rel-pdf-pool-deploys",    path:[[170,420],[170,340]], labelAt:[195,380], labelText:"deploys to" },
+      { id:"rel-webhook-pool-deploys",path:[[450,420],[450,340]], labelAt:[475,380], labelText:"deploys to" },
+      { id:"rel-audit-pool-deploys",  path:[[730,420],[730,340]], labelAt:[755,380], labelText:"deploys to" },
+      { id:"rel-notifications-pool-deploys", path:[[1010,420],[1010,340]], labelAt:[1035,380], labelText:"deploys to" },
+      { id:"rel-pg-deploys-db-node",  path:[[1310,220],[1310,540]], labelAt:[1338,380], labelText:"hosted on" }
+    ],
+    drillable: {}
+  }
+};
+
+/* ---------------------------------------------------------------------------
+   Wiring up state + rendering
+   --------------------------------------------------------------------------- */
+const state = {
+  stack: ["view-system-context"], // breadcrumb history
+  panelOpenFor: null,
+  commentMode: false,
+  comments: [],
+  composerTarget: null
+};
+
+function currentViewId() { return state.stack[state.stack.length - 1]; }
+
+function getViewBreadcrumbs(viewId) {
+  // Build path from system context root down through any drilled containers
+  // by walking VIEWS for which the viewId is a drill target.
+  // For simplicity, we use the navigation stack itself as the breadcrumb path.
+  return state.stack.slice();
+}
+
+function viewLabel(viewId) {
+  const v = VIEWS[viewId];
+  if (!v) return viewId;
+  // Component views drill from a container — show parent container name in label
+  if (viewId.startsWith("view-component-")) {
+    return v.title;
+  }
+  return v.title;
+}
+
+/* ---------- DOM refs ---------- */
+const canvasScroll = document.getElementById("canvasScroll");
+const breadcrumbs = document.getElementById("breadcrumbs");
+const backBtn = document.getElementById("backBtn");
+const panel = document.getElementById("panel");
+const commentToggle = document.getElementById("commentToggle");
+const commentToggleLabel = document.getElementById("commentToggleLabel");
+const commentPanel = document.getElementById("commentPanel");
+const commentList = document.getElementById("commentList");
+const commentPanelClose = document.getElementById("commentPanelClose");
+const exportBtn = document.getElementById("exportBtn");
+const composer = document.getElementById("composer");
+const canvasWrap = document.getElementById("canvasWrap");
+
+/* ---------- SVG construction ---------- */
+function svgEl(name, attrs = {}, children = []) {
+  const el = document.createElementNS("http://www.w3.org/2000/svg", name);
+  for (const k in attrs) {
+    if (attrs[k] === undefined || attrs[k] === null || attrs[k] === false) continue;
+    el.setAttribute(k, attrs[k]);
+  }
+  for (const c of children) {
+    if (typeof c === "string") el.appendChild(document.createTextNode(c));
+    else if (c) el.appendChild(c);
+  }
+  return el;
+}
+
+function pathFromPoints(pts) {
+  if (!pts || !pts.length) return "";
+  return "M " + pts.map(p => `${p[0]} ${p[1]}`).join(" L ");
+}
+
+/* Decide whether a node in this view is drillable */
+function isDrillableInView(view, elementId) {
+  return Object.prototype.hasOwnProperty.call(view.drillable || {}, elementId);
+}
+
+/* Build a single SVG layer for a view */
+function buildLayer(view) {
+  const svg = svgEl("svg", {
+    class: "layer",
+    "data-view-id": view.id,
+    width: view.width,
+    height: view.height,
+    viewBox: `0 0 ${view.width} ${view.height}`,
+    xmlns: "http://www.w3.org/2000/svg"
+  });
+
+  // Defs: arrow markers per edge style
+  const defs = svgEl("defs");
+  const markerStyles = [
+    { id:"arrow-sync",    color:"var(--edge-sync)" },
+    { id:"arrow-async",   color:"var(--edge-async)" },
+    { id:"arrow-storage", color:"var(--edge-storage)" }
+  ];
+  for (const m of markerStyles) {
+    defs.appendChild(svgEl("marker", {
+      id: `${m.id}-${view.id}`,
+      viewBox:"0 0 10 10", refX:9, refY:5,
+      markerWidth:7, markerHeight:7, orient:"auto-start-reverse"
+    }, [
+      svgEl("path", { d:"M 0 0 L 10 5 L 0 10 z", fill: m.color })
+    ]));
+  }
+  svg.appendChild(defs);
+
+  // Boundaries (dashed group rectangles)
+  for (const b of (view.boundaries || [])) {
+    svg.appendChild(svgEl("rect", {
+      class:"boundary-rect", x:b.x, y:b.y, width:b.w, height:b.h, rx:8, ry:8
+    }));
+    svg.appendChild(svgEl("text", {
+      class:"boundary-label", x:b.x + 12, y:b.y + 18
+    }, [b.label]));
+  }
+
+  // Edges first (under nodes)
+  const edgeLayer = svgEl("g", { class:"edges" });
+  for (const e of view.edges) {
+    const rel = MODEL.relationships[e.id];
+    if (!rel) continue;
+    const sync = rel.sync;
+    const cls = sync === "async" ? "edge-path async"
+              : sync === "storage" ? "edge-path storage"
+              : "edge-path";
+    const markerId = sync === "async" ? `arrow-async-${view.id}`
+                  : sync === "storage" ? `arrow-storage-${view.id}`
+                  : `arrow-sync-${view.id}`;
+    const d = pathFromPoints(e.path);
+
+    // Visible path
+    edgeLayer.appendChild(svgEl("path", {
+      class: cls, d,
+      "marker-end": `url(#${markerId})`,
+      "data-relationship-id": e.id,
+      "data-view-id": view.id
+    }));
+    // Oversized invisible hit target
+    edgeLayer.appendChild(svgEl("path", {
+      class:"edge-hit",
+      d,
+      "data-relationship-id": e.id,
+      "data-view-id": view.id,
+      "data-target-kind":"relationship",
+      "data-target-label": e.labelText || rel.label
+    }));
+
+    // Edge label with background swatch
+    if (e.labelText && e.labelAt) {
+      const text = e.labelText;
+      const [lx, ly] = e.labelAt;
+      const approxW = Math.max(40, text.length * 5.6);
+      edgeLayer.appendChild(svgEl("rect", {
+        class:"edge-label-bg",
+        x: lx - approxW/2 - 3, y: ly - 9,
+        width: approxW + 6, height: 12,
+        rx: 2
+      }));
+      edgeLayer.appendChild(svgEl("text", {
+        class:"edge-label", x: lx, y: ly
+      }, [text]));
+    }
+  }
+  svg.appendChild(edgeLayer);
+
+  // Nodes
+  const nodeLayer = svgEl("g", { class:"nodes" });
+  for (const n of view.nodes) {
+    const el = MODEL.elements[n.id];
+    if (!el) continue;
+    const drillable = isDrillableInView(view, n.id);
+    const palette = rolePalette(el.colorRole);
+
+    const g = svgEl("g", {
+      class: "node-card" + (drillable ? " drillable" : ""),
+      "data-element-id": n.id,
+      "data-view-id": view.id,
+      "data-target-kind": "element",
+      "data-target-label": el.name,
+      transform: `translate(${n.x}, ${n.y})`
+    });
+
+    // Box
+    g.appendChild(svgEl("rect", {
+      class:"node-rect",
+      x:0, y:0, width:n.w, height:n.h,
+      rx:11, ry:11,
+      fill: palette.fill, stroke: palette.stroke, "stroke-width":1.5
+    }));
+
+    // Type header (line 1)
+    g.appendChild(svgEl("text", {
+      class:"node-type", x: n.w/2, y: 18,
+      fill: palette.header
+    }, [el.typeLabel]));
+
+    // Name (line 2) — split on two lines if long
+    const name = el.name;
+    const nameY = n.h/2 + 1;
+    if (name.length > 22 && name.includes(" ")) {
+      // split roughly in middle on a space
+      const mid = Math.floor(name.length/2);
+      let splitIdx = name.lastIndexOf(" ", mid);
+      if (splitIdx === -1) splitIdx = name.indexOf(" ", mid);
+      if (splitIdx === -1) splitIdx = mid;
+      const a = name.slice(0, splitIdx).trim();
+      const b = name.slice(splitIdx).trim();
+      g.appendChild(svgEl("text", {
+        class:"node-name", x:n.w/2, y: nameY - 7, fill:palette.text
+      }, [a]));
+      g.appendChild(svgEl("text", {
+        class:"node-name", x:n.w/2, y: nameY + 9, fill:palette.text
+      }, [b]));
+    } else {
+      g.appendChild(svgEl("text", {
+        class:"node-name", x:n.w/2, y: nameY, fill:palette.text
+      }, [name]));
+    }
+
+    // Tech / fallback (line 3)
+    const tech = el.technology && el.technology.trim() ? el.technology : (el.subtitleFallback || "");
+    if (tech) {
+      g.appendChild(svgEl("text", {
+        class:"node-tech", x: n.w/2, y: n.h - 12,
+        fill: "var(--text-secondary)"
+      }, [tech]));
+    }
+
+    // Drill chevron (small affordance, top-right)
+    if (drillable) {
+      g.appendChild(svgEl("text", {
+        class:"chevron", x: n.w - 14, y: 18, "text-anchor":"end"
+      }, ["▸"]));
+    }
+
+    nodeLayer.appendChild(g);
+  }
+  svg.appendChild(nodeLayer);
+
+  return svg;
+}
+
+/* ---------- Render layers (one at a time) ---------- */
+function renderLayers() {
+  // Initial render: only the current view goes into the DOM.
+  attachInteractions();
+  setActiveView(currentViewId());
+  renderBreadcrumbs();
+  renderCommentMarkers();
+}
+
+function setActiveView(viewId) {
+  // Remove any existing layer SVG and render only the requested view.
+  const existing = canvasScroll.querySelectorAll("svg.layer");
+  existing.forEach(el => el.remove());
+  const view = VIEWS[viewId];
+  if (!view) return;
+  const svg = buildLayer(view);
+  svg.classList.add("active");
+  canvasScroll.appendChild(svg);
+  // Reset scroll to top-left so the new view starts in a sensible position.
+  canvasScroll.scrollTop = 0;
+  canvasScroll.scrollLeft = 0;
+}
+
+function switchToView(viewId, pushStack = true) {
+  if (pushStack) state.stack.push(viewId);
+  setActiveView(viewId);
+  closePanel();
+  closeComposer();
+  renderBreadcrumbs();
+  renderCommentMarkers();
+  renderCommentList();
+}
+
+function navigateBackTo(stackIndex) {
+  state.stack = state.stack.slice(0, stackIndex + 1);
+  setActiveView(currentViewId());
+  closePanel();
+  closeComposer();
+  renderBreadcrumbs();
+  renderCommentMarkers();
+  renderCommentList();
+}
+
+function popView() {
+  if (state.stack.length <= 1) return;
+  state.stack.pop();
+  setActiveView(currentViewId());
+  closePanel();
+  closeComposer();
+  renderBreadcrumbs();
+  renderCommentMarkers();
+  renderCommentList();
+}
+
+/* ---------- Breadcrumbs ---------- */
+function renderBreadcrumbs() {
+  breadcrumbs.innerHTML = "";
+  const label = document.createElement("span");
+  label.className = "crumb-label";
+  label.textContent = "View:";
+  breadcrumbs.appendChild(label);
+
+  state.stack.forEach((vid, idx) => {
+    const isLast = idx === state.stack.length - 1;
+    const a = document.createElement("a");
+    a.className = "crumb" + (isLast ? " current" : "");
+    a.textContent = viewLabel(vid);
+    if (!isLast) {
+      a.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        navigateBackTo(idx);
+      });
+    }
+    breadcrumbs.appendChild(a);
+    if (!isLast) {
+      const sep = document.createElement("span");
+      sep.className = "crumb-sep";
+      sep.textContent = "›";
+      breadcrumbs.appendChild(sep);
+    }
+  });
+
+  backBtn.disabled = state.stack.length <= 1;
+}
+
+/* ---------- Click handlers (delegated) ---------- */
+function attachInteractions() {
+  canvasScroll.addEventListener("click", (ev) => {
+    // Comment mode flow has priority
+    if (state.commentMode) {
+      handleCommentModeClick(ev);
+      return;
+    }
+    const node = ev.target.closest(".node-card");
+    if (node) {
+      const elementId = node.getAttribute("data-element-id");
+      const viewId = node.getAttribute("data-view-id");
+      const view = VIEWS[viewId];
+      if (isDrillableInView(view, elementId)) {
+        switchToView(view.drillable[elementId], true);
+      } else {
+        openPanelForElement(elementId, viewId);
+      }
+      return;
+    }
+    // Click on edge hit target → details panel only when not in comment mode
+    // (detail panel for relationships is intentionally not the primary affordance —
+    // we open details for elements only, per spec)
+  });
+
+  backBtn.addEventListener("click", popView);
+
+  commentToggle.addEventListener("change", (ev) => {
+    state.commentMode = ev.target.checked;
+    if (state.commentMode) {
+      commentToggleLabel.classList.add("active");
+      canvasWrap.classList.add("comment-mode");
+      openCommentPanel();
+    } else {
+      commentToggleLabel.classList.remove("active");
+      canvasWrap.classList.remove("comment-mode");
+      closeComposer();
+    }
+  });
+
+  commentPanelClose.addEventListener("click", () => {
+    commentPanel.classList.remove("open");
+  });
+
+  exportBtn.addEventListener("click", exportComments);
+
+  document.getElementById("deploymentLink").addEventListener("click", (ev) => {
+    ev.preventDefault();
+    if (currentViewId() === "view-deployment") return;
+    state.stack = ["view-deployment"];
+    setActiveView("view-deployment");
+    closePanel();
+    closeComposer();
+    renderBreadcrumbs();
+    renderCommentMarkers();
+    renderCommentList();
+  });
+
+  // ESC closes panels
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape") {
+      closePanel();
+      closeComposer();
+    }
+  });
+}
+
+/* ---------- Details panel ---------- */
+function openPanelForElement(elementId, viewId) {
+  const el = MODEL.elements[elementId];
+  if (!el) return;
+  state.panelOpenFor = { elementId, viewId };
+  const palette = rolePalette(el.colorRole);
+
+  // Find inbound/outbound for this element (filter by view)
+  const view = VIEWS[viewId];
+  const viewRelIds = new Set((view.edges || []).map(e => e.id));
+  const inbound = [];
+  const outbound = [];
+  for (const r of Object.values(MODEL.relationships)) {
+    if (!viewRelIds.has(r.id)) continue;
+    if (r.target === elementId) inbound.push(r);
+    if (r.source === elementId) outbound.push(r);
+  }
+
+  const sections = [];
+  if (el.description) sections.push({ label:"Description", html: escapeHtml(el.description) });
+  if (el.responsibility) sections.push({ label:"Responsibility", html: escapeHtml(el.responsibility) });
+  if (el.technology) sections.push({ label:"Technology", html: escapeHtml(el.technology) });
+  if (inbound.length) sections.push({ label:"Inbound", html: relRowsHtml(inbound, "in") });
+  if (outbound.length) sections.push({ label:"Outbound", html: relRowsHtml(outbound, "out") });
+  if (el.confidence) sections.push({ label:"Confidence", html: `<span class="conf-pill ${confidenceClass(el.confidence)}">${escapeHtml(humanConf(el.confidence))}</span>` });
+
+  panel.innerHTML = `
+    <div class="panel-header">
+      <button class="panel-close" id="panelCloseBtn" aria-label="Close">×</button>
+      <h2 class="panel-name">${escapeHtml(el.name)}</h2>
+      <div class="panel-type" style="color: ${palette.header}">${escapeHtml(el.typeLabel)}</div>
+    </div>
+    <div class="panel-body">
+      ${sections.map(s => `
+        <div class="panel-section">
+          <div class="panel-section-label">${s.label}</div>
+          <div class="panel-section-content">${s.html}</div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+  panel.classList.add("open");
+  panel.setAttribute("aria-hidden", "false");
+  document.getElementById("panelCloseBtn").addEventListener("click", closePanel);
+}
+
+function closePanel() {
+  panel.classList.remove("open");
+  panel.setAttribute("aria-hidden", "true");
+  state.panelOpenFor = null;
+}
+
+function relRowsHtml(rels, direction) {
+  return rels.map(r => {
+    const otherId = direction === "in" ? r.source : r.target;
+    const otherEl = MODEL.elements[otherId];
+    const arrow = direction === "in" ? "←" : "→";
+    const meta = r.sync === "async" ? `<span class="rel-meta async">async</span>`
+              : r.sync === "storage" ? `<span class="rel-meta storage">storage</span>`
+              : `<span class="rel-meta">sync</span>`;
+    return `<div class="rel-row">
+      <span class="rel-arrow">${arrow}</span>
+      <span class="rel-other">${escapeHtml(otherEl ? otherEl.name : otherId)}</span>
+      ${meta}
+      <span class="rel-label">${escapeHtml(r.label)}</span>
+    </div>`;
+  }).join("");
+}
+
+function escapeHtml(s) {
+  if (s == null) return "";
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+}
+function humanConf(c) { return c.replace(/_/g, " "); }
+function confidenceClass(c) {
+  if (c === "confirmed") return "conf-confirmed";
+  if (c === "strong_inference") return "conf-strong";
+  return "conf-weak";
+}
+
+/* ---------- Comment mode ---------- */
+function openCommentPanel() {
+  commentPanel.classList.add("open");
+  renderCommentList();
+}
+
+function handleCommentModeClick(ev) {
+  // Determine target: node, edge, or canvas
+  const node = ev.target.closest(".node-card");
+  const edge = ev.target.closest(".edge-hit");
+  const layer = ev.target.closest("svg.layer");
+  if (!layer) return;
+  const viewId = layer.getAttribute("data-view-id");
+
+  let target;
+  if (node) {
+    target = {
+      view_id: viewId,
+      element_id: node.getAttribute("data-element-id"),
+      relationship_id: null,
+      target_kind: "element",
+      target_label: node.getAttribute("data-target-label")
+    };
+  } else if (edge) {
+    target = {
+      view_id: viewId,
+      element_id: null,
+      relationship_id: edge.getAttribute("data-relationship-id"),
+      target_kind: "relationship",
+      target_label: edge.getAttribute("data-target-label")
+    };
+  } else {
+    target = {
+      view_id: viewId,
+      element_id: null,
+      relationship_id: null,
+      target_kind: "canvas",
+      target_label: viewLabel(viewId)
+    };
+  }
+
+  // Position composer near click point
+  const rect = canvasWrap.getBoundingClientRect();
+  const cx = ev.clientX - rect.left + 8;
+  const cy = ev.clientY - rect.top + 8;
+  showComposer(target, cx, cy);
+}
+
+function showComposer(target, x, y) {
+  state.composerTarget = target;
+  composer.style.display = "block";
+  composer.innerHTML = `
+    <div class="composer-target">${escapeHtml(target.target_kind)} · ${escapeHtml(target.view_id)}</div>
+    <div class="composer-target-label">${escapeHtml(target.target_label || "(no label)")}</div>
+    <textarea id="composerText" placeholder="Add a comment..." autofocus></textarea>
+    <div class="composer-buttons">
+      <button class="composer-btn" id="composerCancel">Cancel</button>
+      <button class="composer-btn primary" id="composerSave">Save</button>
+    </div>
+  `;
+  // Clamp to viewport
+  const wrapW = canvasWrap.clientWidth;
+  const wrapH = canvasWrap.clientHeight;
+  const compW = 280, compH = 160;
+  const fx = Math.min(x, wrapW - compW - 12);
+  const fy = Math.min(y, wrapH - compH - 12);
+  composer.style.left = fx + "px";
+  composer.style.top = fy + "px";
+
+  document.getElementById("composerSave").addEventListener("click", saveComposer);
+  document.getElementById("composerCancel").addEventListener("click", closeComposer);
+  setTimeout(() => { document.getElementById("composerText").focus(); }, 10);
+}
+
+function closeComposer() {
+  composer.style.display = "none";
+  state.composerTarget = null;
+}
+
+function saveComposer() {
+  const text = document.getElementById("composerText").value.trim();
+  if (!text) { closeComposer(); return; }
+  const t = state.composerTarget;
+  if (!t) return;
+  state.comments.push({
+    id: "c-" + Date.now() + "-" + Math.floor(Math.random() * 1000),
+    view_id: t.view_id,
+    element_id: t.element_id,
+    relationship_id: t.relationship_id,
+    target_kind: t.target_kind,
+    target_label: t.target_label,
+    comment: text,
+    created_at: new Date().toISOString()
+  });
+  closeComposer();
+  renderCommentList();
+  renderCommentMarkers();
+}
+
+function renderCommentList() {
+  const cs = state.comments.slice().reverse();
+  if (!cs.length) {
+    commentList.innerHTML = `<div class="comment-empty">No comments yet. Click a node, relationship, or empty canvas while comment mode is on.</div>`;
+    return;
+  }
+  commentList.innerHTML = cs.map(c => `
+    <div class="comment-item" data-comment-id="${c.id}">
+      <div class="comment-target">${escapeHtml(c.target_kind)} · ${escapeHtml(c.view_id)}</div>
+      <div class="comment-target-label">${escapeHtml(c.target_label || "")}</div>
+      <div class="comment-text">${escapeHtml(c.comment)}</div>
+      <div class="comment-actions">
+        <span class="comment-action" data-go="${c.id}">Show</span>
+        <span class="comment-action" data-del="${c.id}">Delete</span>
+      </div>
+    </div>
+  `).join("");
+  commentList.querySelectorAll(".comment-action").forEach(el => {
+    el.addEventListener("click", (ev) => {
+      const goId = el.getAttribute("data-go");
+      const delId = el.getAttribute("data-del");
+      if (goId) {
+        const c = state.comments.find(x => x.id === goId);
+        if (c && c.view_id !== currentViewId()) {
+          // Navigate to the view; keep stack truncated to that view
+          state.stack = [c.view_id];
+          setActiveView(c.view_id);
+          renderBreadcrumbs();
+          renderCommentMarkers();
+        }
+      } else if (delId) {
+        state.comments = state.comments.filter(x => x.id !== delId);
+        renderCommentList();
+        renderCommentMarkers();
+      }
+    });
+  });
+}
+
+function renderCommentMarkers() {
+  // Clear existing markers in all layers
+  for (const layer of canvasScroll.querySelectorAll("svg.layer")) {
+    const old = layer.querySelector("g.comment-markers");
+    if (old) old.remove();
+  }
+  const byView = {};
+  for (const c of state.comments) {
+    (byView[c.view_id] ||= []).push(c);
+  }
+  for (const vid in byView) {
+    const layer = canvasScroll.querySelector(`svg.layer[data-view-id="${vid}"]`);
+    if (!layer) continue;
+    const view = VIEWS[vid];
+    const g = svgEl("g", { class:"comment-markers" });
+    for (const c of byView[vid]) {
+      let cx = 24, cy = 24;
+      if (c.element_id) {
+        const n = view.nodes.find(nn => nn.id === c.element_id);
+        if (n) { cx = n.x + n.w - 8; cy = n.y + 8; }
+      } else if (c.relationship_id) {
+        const e = view.edges.find(ee => ee.id === c.relationship_id);
+        if (e && e.labelAt) { cx = e.labelAt[0] + 30; cy = e.labelAt[1]; }
+      } else {
+        // canvas comment — top-right
+        cx = view.width - 30; cy = 30 + (byView[vid].indexOf(c) * 22);
+      }
+      g.appendChild(svgEl("circle", {
+        class:"comment-marker", cx, cy, r:7,
+        fill:"#fde68a", stroke:"#b45309", "stroke-width":1.2
+      }));
+      g.appendChild(svgEl("text", {
+        x:cx, y:cy + 3, "text-anchor":"middle",
+        "font-size":9, "font-weight":700, fill:"#78350f",
+        "pointer-events":"none"
+      }, [String(byView[vid].indexOf(c) + 1)]));
+    }
+    layer.appendChild(g);
+  }
+}
+
+/* ---------- Export comments ---------- */
+function exportComments() {
+  const payload = {
+    system: "Document Signing Platform",
+    exported_at: new Date().toISOString(),
+    comments: state.comments.map(c => ({
+      view_id: c.view_id,
+      element_id: c.element_id,
+      relationship_id: c.relationship_id,
+      target_kind: c.target_kind,
+      target_label: c.target_label,
+      comment: c.comment,
+      created_at: c.created_at
+    }))
+  };
+  const txt = JSON.stringify(payload, null, 2);
+  // Try clipboard, fall back to download
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(() => {
+      flashExport("Comments JSON copied to clipboard");
+    }).catch(() => downloadJson(txt));
+  } else {
+    downloadJson(txt);
+  }
+}
+
+function downloadJson(txt) {
+  const blob = new Blob([txt], { type:"application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "comments.json";
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+  flashExport("Comments JSON downloaded");
+}
+
+function flashExport(msg) {
+  const original = exportBtn.textContent;
+  exportBtn.textContent = msg;
+  setTimeout(() => { exportBtn.textContent = original; }, 1800);
+}
+
+/* ---------- boot ---------- */
+renderLayers();
+</script>
+</body>
+</html>

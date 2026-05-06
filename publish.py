@@ -9,8 +9,10 @@ Source of truth lives at /Users/will/code/writing/publish/. This script:
      and copies any referenced images into `assets/posts/<slug>/`, rewriting
      image paths in the markdown so they resolve from `writing/<slug>.html`.
   3. Renders each post into `writing/<slug>.html`.
+  4. Syncs titles for existing writing-list links in `index.html`.
 
-`index.html` is hand-maintained — add new posts to the writing list there.
+`index.html` writing-list membership/order is hand-maintained. Titles for
+existing linked posts are synced from post frontmatter.
 
 Posts in `posts/` whose slugs don't appear in the source tree are left alone
 (non-destructive). To remove one, delete it manually.
@@ -60,6 +62,7 @@ except ImportError:
 SOURCE_DIR = Path("/Users/will/code/writing/publish")  # external source of truth
 
 ROOT = Path(__file__).resolve().parent
+INDEX_PATH = ROOT / "index.html"
 POSTS_DIR = ROOT / "posts"                # markdown snapshots (derived)
 WRITING_DIR = ROOT / "writing"            # rendered HTML (derived)
 ASSETS_POSTS_DIR = ROOT / "assets" / "posts"  # post images (derived)
@@ -519,6 +522,59 @@ def build_post(post: dict, prev: dict | None, nxt: dict | None) -> Path:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# Home page sync
+# ──────────────────────────────────────────────────────────────────────────────
+
+WRITING_LINK_RE = re.compile(
+    r"(<a\b"
+    r"(?=[^>]*\bclass=[\"'][^\"']*\bwriting-link\b[^\"']*[\"'])"
+    r"(?=[^>]*\bhref=[\"']writing/([^\"']+)\.html[\"'])"
+    r"[^>]*>)(.*?)(</a>)",
+    re.DOTALL,
+)
+WRITING_TITLE_RE = re.compile(
+    r"(<p\b[^>]*\bclass=[\"'][^\"']*\bwriting-title\b[^\"']*[\"'][^>]*>)"
+    r"(.*?)(</p>)",
+    re.DOTALL,
+)
+
+
+def sync_index_writing_titles(posts: list[dict]) -> int:
+    """Update homepage writing titles for links that already exist there."""
+    if not INDEX_PATH.exists():
+        return 0
+
+    titles_by_slug = {
+        post["slug"]: render_inline(post["title"])
+        for post in posts
+    }
+    html = INDEX_PATH.read_text()
+    updated = 0
+
+    def _replace_link(match: re.Match) -> str:
+        nonlocal updated
+        open_tag, slug, body, close_tag = match.groups()
+        title = titles_by_slug.get(slug)
+        if title is None:
+            return match.group(0)
+
+        def _replace_title(title_match: re.Match) -> str:
+            nonlocal updated
+            before, current, after = title_match.groups()
+            if current != title:
+                updated += 1
+            return f"{before}{title}{after}"
+
+        new_body = WRITING_TITLE_RE.sub(_replace_title, body, count=1)
+        return f"{open_tag}{new_body}{close_tag}"
+
+    new_html = WRITING_LINK_RE.sub(_replace_link, html)
+    if new_html != html:
+        INDEX_PATH.write_text(new_html)
+    return updated
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 # Main
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -547,6 +603,15 @@ def main() -> None:
     if not posts:
         print("No publishable posts found.")
         return
+
+    synced_titles = sync_index_writing_titles(posts)
+    if synced_titles:
+        print(
+            f"  synced {synced_titles} index.html writing "
+            f"title{'s' if synced_titles != 1 else ''}"
+        )
+    else:
+        print("  index.html writing titles already current")
 
     for i, post in enumerate(posts):
         # posts are date-desc; "previous" in reading order is older = next index.

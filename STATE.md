@@ -49,12 +49,12 @@ Design implementation + content workflow
 
 ## Completed
 
+- [x] Synced homepage writing titles from post frontmatter and added `publish.py` automation for existing writing-list links
 - [x] Added Vimeo embed support to `publish.py` and published the Architect demo video in `introducing-architect`
 - [x] Implemented the Claude Design handoff: `tokens.css`, `site.css`, hero, writing list, projects, footer
 - [x] Stripped design-time tooling (tweaks panel, React/Babel CDN) from production HTML
-- [x] Created the public GitHub repo and renamed it to `willhennessy/my-website`
 - [x] Wired GitHub Pages to the custom domain `willhennessy.io`
 
 ## Notes for Next Session
 
-The home page is hand-maintained in `index.html`, including the projects grid and writing list. `publish.py` syncs posts from `/Users/will/code/writing/publish` into `posts/` and renders `writing/*.html`; it now normalizes pasted Vimeo iframe embeds and loads the Vimeo player script once per post. The remaining blocker is DNS at Namecheap.
+The home page is hand-maintained in `index.html`, including the projects grid and writing-list membership/order. `publish.py` syncs posts from `/Users/will/code/writing/publish` into `posts/`, renders `writing/*.html`, normalizes pasted Vimeo iframe embeds, and now syncs titles for existing homepage writing links from post frontmatter. The remaining blocker is DNS at Namecheap.
