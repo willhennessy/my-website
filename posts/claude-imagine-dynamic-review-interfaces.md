@@ -71,7 +71,9 @@ The first result was functionally correct, but visually cluttered. Edges crossed
 
 I asked Claude why it missed such obvious edge routing problems. Its answer was insightful:
 
-> I didn't actually verify the routing. I treated "draw an arrow from A to B" as a one-step problem and eyeballed the waypoints instead of reserving channels. The original prompt didn't ask me to verify my own work, so I didn't.
+```
+I didn't actually verify the routing. I treated "draw an arrow from A to B" as a one-step problem and eyeballed the waypoints instead of reserving channels. The original prompt didn't ask me to verify my own work, so I didn't.
+```
 
 Claude knew many of the right design principles, but it was not applying them as constraints. I needed to codify more rules, so I spent the next hour coaching Claude through the failure modes.
 

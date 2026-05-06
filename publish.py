@@ -28,6 +28,10 @@ Frontmatter keys (all optional except title, slug, date):
     lede          one-paragraph subhead under the title (markdown allowed)
 
 Dependency:  pip3 install markdown
+
+Vimeo embeds: paste Vimeo's iframe embed into markdown. The publisher
+normalizes player.vimeo.com iframes into responsive embeds and loads Vimeo's
+player script once per post.
 """
 
 from __future__ import annotations
@@ -36,7 +40,9 @@ import re
 import shutil
 import sys
 from datetime import datetime
+from html import escape, unescape
 from pathlib import Path
+from urllib.parse import urlparse
 
 try:
     import markdown
@@ -210,8 +216,92 @@ def attach_image_captions(md_text: str) -> str:
     return "\n".join(out)
 
 
+VIMEO_PLAYER_SCRIPT = (
+    '<script src="https://player.vimeo.com/api/player.js"></script>'
+)
+VIMEO_PLAYER_SCRIPT_RE = re.compile(
+    r"\s*<script\s+src=([\"'])https://player\.vimeo\.com/api/player\.js\1\s*>\s*</script>\s*",
+    re.IGNORECASE,
+)
+VIMEO_EMBED_RE = re.compile(
+    r"(?:<div\b[^>]*>\s*)?"
+    r"<iframe\b(?P<attrs>[^>]*)>\s*</iframe>"
+    r"\s*(?:</div>)?"
+    r"(?:\s*<script\s+src=([\"'])https://player\.vimeo\.com/api/player\.js\2\s*>\s*</script>)?",
+    re.IGNORECASE | re.DOTALL,
+)
+HTML_ATTR_RE = re.compile(
+    r"([A-Za-z_:][\w:.-]*)\s*=\s*(?:\"([^\"]*)\"|'([^']*)')"
+)
+
+
+def _parse_html_attrs(raw: str) -> dict[str, str]:
+    attrs: dict[str, str] = {}
+    for match in HTML_ATTR_RE.finditer(raw):
+        attrs[match.group(1).lower()] = unescape(match.group(2) or match.group(3) or "")
+    return attrs
+
+
+def _is_vimeo_player_src(src: str) -> bool:
+    parsed = urlparse(src)
+    return (
+        parsed.scheme == "https"
+        and parsed.netloc == "player.vimeo.com"
+        and parsed.path.startswith("/video/")
+    )
+
+
+def _render_vimeo_embed(attrs: dict[str, str]) -> str:
+    iframe_attrs = {
+        "src": attrs["src"],
+        "frameborder": attrs.get("frameborder", "0"),
+        "allow": attrs.get(
+            "allow",
+            "autoplay; fullscreen; picture-in-picture; clipboard-write; "
+            "encrypted-media; web-share",
+        ),
+        "referrerpolicy": attrs.get(
+            "referrerpolicy",
+            "strict-origin-when-cross-origin",
+        ),
+        "style": "position:absolute;top:0;left:0;width:100%;height:100%;",
+        "title": attrs.get("title", "Vimeo video"),
+    }
+    attr_text = " ".join(
+        f'{name}="{escape(value, quote=True)}"'
+        for name, value in iframe_attrs.items()
+        if value
+    )
+    return (
+        '<div class="vimeo-embed" '
+        'style="padding:56.25% 0 0 0;position:relative;">'
+        f"<iframe {attr_text}></iframe>"
+        "</div>"
+    )
+
+
+def normalize_vimeo_embeds(md_text: str) -> str:
+    found = False
+
+    def _sub(match: re.Match) -> str:
+        nonlocal found
+        attrs = _parse_html_attrs(match.group("attrs"))
+        src = attrs.get("src", "")
+        if not _is_vimeo_player_src(src):
+            return match.group(0)
+        found = True
+        return _render_vimeo_embed(attrs)
+
+    out = VIMEO_EMBED_RE.sub(_sub, md_text)
+    if found:
+        out = VIMEO_PLAYER_SCRIPT_RE.sub("\n", out)
+        out = out.rstrip() + f"\n\n{VIMEO_PLAYER_SCRIPT}\n"
+    return out
+
+
 def render_body(md_text: str) -> str:
     md_text = attach_image_captions(md_text)
+    md_text = normalize_vimeo_embeds(md_text)
     md = markdown.Markdown(
         extensions=["extra", "sane_lists", "smarty"],
         extension_configs={"smarty": {"smart_dashes": True, "smart_quotes": False}},

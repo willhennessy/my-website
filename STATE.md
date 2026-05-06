@@ -1,6 +1,6 @@
 # STATE
 
-Last updated: 2026-05-05
+Last updated: 2026-05-06
 
 ## Current Objective
 
@@ -45,16 +45,16 @@ Design implementation + content workflow
 - [ ] Update Namecheap DNS for `willhennessy.io` and `www`
 - [ ] Wait for DNS to propagate
 - [ ] Turn on HTTPS enforcement in GitHub Pages once eligible
-- [ ] Backfill more posts (`posts/*.md`) and rerun `python3 build.py`
+- [ ] Backfill more posts (`posts/*.md`) and rerun `python3 publish.py`
 
 ## Completed
 
+- [x] Added Vimeo embed support to `publish.py` and published the Architect demo video in `introducing-architect`
 - [x] Implemented the Claude Design handoff: `tokens.css`, `site.css`, hero, writing list, projects, footer
 - [x] Stripped design-time tooling (tweaks panel, React/Babel CDN) from production HTML
 - [x] Created the public GitHub repo and renamed it to `willhennessy/my-website`
 - [x] Wired GitHub Pages to the custom domain `willhennessy.io`
-- [x] Added Alchemy Wallet SDK to the projects grid
 
 ## Notes for Next Session
 
-The home page is hand-maintained in `index.html`, including the projects grid and writing list. `publish.py` syncs posts from `/Users/will/code/writing/publish` into `posts/` and renders `writing/*.html`; it does not regenerate `index.html`. The remaining blocker is DNS at Namecheap.
+The home page is hand-maintained in `index.html`, including the projects grid and writing list. `publish.py` syncs posts from `/Users/will/code/writing/publish` into `posts/` and renders `writing/*.html`; it now normalizes pasted Vimeo iframe embeds and loads the Vimeo player script once per post. The remaining blocker is DNS at Namecheap.

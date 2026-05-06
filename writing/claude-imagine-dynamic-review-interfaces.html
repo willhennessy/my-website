@@ -137,9 +137,8 @@
 <p>The first result was functionally correct, but visually cluttered. Edges crossed through unrelated nodes. Labels collided. Boxes carried too much text. Navigation buttons cluttered the UI. Score: 6/15.</p>
 <p><img alt="First Claude Imagine diagram attempt" src="../assets/posts/claude-imagine-dynamic-review-interfaces/imagine-first-eval-diagram.png" /></p>
 <p>I asked Claude why it missed such obvious edge routing problems. Its answer was insightful:</p>
-<blockquote>
-<p>I didn't actually verify the routing. I treated "draw an arrow from A to B" as a one-step problem and eyeballed the waypoints instead of reserving channels. The original prompt didn't ask me to verify my own work, so I didn't.</p>
-</blockquote>
+<pre><code>I didn't actually verify the routing. I treated &quot;draw an arrow from A to B&quot; as a one-step problem and eyeballed the waypoints instead of reserving channels. The original prompt didn't ask me to verify my own work, so I didn't.
+</code></pre>
 <p>Claude knew many of the right design principles, but it was not applying them as constraints. I needed to codify more rules, so I spent the next hour coaching Claude through the failure modes.</p>
 <h2>What improved the diagram</h2>
 <p>The most useful part of the experiment was watching the failure mode shift from rendering to judgment.</p>
