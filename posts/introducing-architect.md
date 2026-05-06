@@ -8,7 +8,9 @@ description: The Claude Architect plugin adds an interactive architecture diagra
 lede: Make Plan Mode feel like a whiteboard session
 ---
 
-Claude Architect turns Plan Mode into a collaborative architecture review with Claude. It gives Claude a way to turn its implementation plan into an interactive diagram so you can review the whole system at a glance and comment directly on components and relationships.
+I'm excited to launch Claude Architect, a plugin that lets you review Claude's implementation plan as an interactive architecture diagram in Plan Mode. You can see the whole system at a glance, comment directly on components and relationships, and refine the architecture with Claude before code is written.
+
+<div style="padding:56.25% 0 0 0;position:relative;"><iframe src="https://player.vimeo.com/video/1189608717?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" style="position:absolute;top:0;left:0;width:100%;height:100%;" title="Claude Architect"></iframe></div><script src="https://player.vimeo.com/api/player.js"></script>
 
 ## Steering agents in production systems
 
@@ -50,8 +52,6 @@ You interact with a visual diagram and Claude reads structured YAML files.
 ## Demo
 
 Let's walk through a demo. We'll design a new multi-tenant B2B document-signing platform.
-
-<div style="padding:56.25% 0 0 0;position:relative;"><iframe src="https://player.vimeo.com/video/1189608717?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" style="position:absolute;top:0;left:0;width:100%;height:100%;" title="Claude Architect"></iframe></div><script src="https://player.vimeo.com/api/player.js"></script>
 
 ### 1. Start planning
 
