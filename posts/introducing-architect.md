@@ -122,8 +122,8 @@ Next, I'll be adding more features:
 
 And exploring some research hypotheses:
 
-1. Does the semantic architecture model help coding agents operate more effectively in large codebases by providing a high level map of the system?
-2. Can we use the architecture model to establish useful guardrails that mitigate architecture drift as agents operate in large codebases?
+1. Does the semantic architecture model help agents navigate large codebases more effectively?
+2. Can we use the architecture model to establish guardrails that mitigate architecture drift as agents layer on new functionality over time?
 
 ## Try it out
 
