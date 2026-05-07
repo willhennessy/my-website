@@ -10,25 +10,25 @@ lede: Make Plan Mode feel like a whiteboard session
 
 I'm excited to launch Claude Architect, a plugin that turns Plan Mode into a collaborative architecture review with Claude.
 
-Architect renders any Claude Code plan as an interactive system diagram so you can see the whole system at a glance, comment directly on components and relationships, and refine the architecture with Claude before code is written.
+Architect renders any Claude Code plan as an interactive diagram so you can see the whole system at a glance, comment directly on components, and refine the architecture with Claude before any code is written.
 
 <div style="padding:56.25% 0 0 0;position:relative;"><iframe src="https://player.vimeo.com/video/1189608717?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" style="position:absolute;top:0;left:0;width:100%;height:100%;" title="Claude Architect"></iframe></div><script src="https://player.vimeo.com/api/player.js"></script>
 
 ## Steering agents in production systems
 
-Coding agents can one-shot a prototype, but when you're building a production system they need a lot of steering. That steering usually falls into three buckets:
+Coding agents can one-shot a prototype, but when you're building a production system they need a lot of steering. That means you're writing long prompts or providing many rounds of feedback to convey requirements like:
 
 - **cross-component context**: "after refactoring Component A, go update Component B which calls it"
-- **production requirements**: "add a load balancer here" or "put a cache there"
+- **production constraints**: "add a load balancer here" or "put a cache there"
 - **confidence checks**: "will this actually hold up at 50 QPS in prod?"
 
-The local implementation is often fine, but steering is needed to transfer full system context and production constraints from your head into the agent’s plan. After a full day of back-and-forth in the terminal, that overhead starts to feel like its own job.
+After a full day of back-and-forth in the terminal, that overhead starts to feel like its own job.
 
 ## Diagrams: a better interface for system design
 
 What if Plan Mode felt more like a whiteboard session?
 
-Whiteboards are a great tool for system design because you can quickly grok the entire architecture, spot relationships that are easy to miss in text, and debate specific components in context of the whole system. They result in clear decisions and usually leave you feeling energized.
+Whiteboards are a great tool for system design because you can quickly grok the entire architecture, spot relationships that are easy to miss in text, and debate specific components in the context of the whole system.
 
 ![image-20260419152418294](../assets/posts/introducing-architect/image-20260419152418294.png)
 
@@ -36,7 +36,7 @@ _A good whiteboard session quickly surfaces the most important design decisions_
 
 ## Steering agents through diagrams
 
-I built the Claude Architect [plugin](https://github.com/willhennessy/architect) to make Plan Mode feel more like a whiteboard session. The plugin generates an interactive architecture diagram during Plan Mode so you can review, annotate, and revise the plan with Claude in real time.
+The Claude Architect [plugin](https://github.com/willhennessy/architect) simulates that experience by extending Plan Mode with an interactive architecture diagram. The visual canvas makes it much easier to review, annotate, and revise the plan with Claude in real time.
 
 ![image-20260421181209598](../assets/posts/introducing-architect/image-20260421181209598.png){.no-border}
 
@@ -59,9 +59,11 @@ Let's walk through a demo. We'll design a new multi-tenant B2B document-signing 
 
 Switch to Plan Mode and give Claude your requirements.
 
-![terminal_initial_prompt](../assets/posts/introducing-architect/introducing-architect-terminal-initial-prompt.png){.no-border}Claude writes the plan as usual, and then asks
+![terminal_initial_prompt](../assets/posts/introducing-architect/introducing-architect-terminal-initial-prompt.png){.no-border}
 
-> _Do you want to review an interactive architecture diagram?_
+Claude writes the plan as usual, and then asks
+
+```Do you want to review an interactive architecture diagram?```
 
 Yes.
 
@@ -112,11 +114,16 @@ Agents give you leverage, but interfaces determine how much of it you can actual
 
 Powerful models have made chat interfaces feel magical, but this prototype was a reminder that interface design still matters because agents perform much better when humans understand the plan and steer it well. Last week's Claude Design launch is another good example of how much interface design can shape agent performance. I expect a lot more experimentation in agent interfaces this year.
 
-Next, I'll be adding more features and exploring research questions:
+Next, I'll be adding more features:
 
-1. What parts of Plan Mode are better done in a diagram vs. a text doc?
-2. Does the codified architecture model help coding agents operate more effectively in large codebases by providing a high level map of the system?
-3. Can we use the architecture model to establish useful guardrails that mitigate architecture drift as agents operate in large codebases?
+1. Comment threads for back-and-forth discussion with Claude on tricky comments
+2. Architect subagents to review the diagram with domain expertise, like Security, and add comments directly on the diagram
+3. Edit mode: add, delete, drag, and edit
+
+And exploring some research hypotheses:
+
+1. Does the semantic architecture model help coding agents operate more effectively in large codebases by providing a high level map of the system?
+2. Can we use the architecture model to establish useful guardrails that mitigate architecture drift as agents operate in large codebases?
 
 ## Try it out
 
