@@ -1,60 +1,62 @@
 # STATE
 
-Last updated: 2026-05-06
+Last updated: 2026-11-09
 
 ## Current Objective
 
-Launch the personal website on GitHub Pages at `willhennessy.io`.
+Maintain the personal website and project portfolio for `willhennessy.io` on GitHub Pages.
 
 ## Current Phase
 
-Design implementation + content workflow
+Release and deployment
 
 ## Current Task
 
-- [ ] Verify the new design + markdown build pipeline end-to-end and finish DNS cutover.
+- [ ] Merge and deploy the portfolio updates.
 
 ### Current Task Details
 
-- **Goal**: Ship the redesigned site (from the Claude Design handoff) with a working markdown → HTML build, then complete the GitHub Pages DNS cutover.
-- **Why now**: Design is in, the build script works locally, and DNS is the only remaining blocker for the live site.
+- **Goal**: Merge the Sierra portfolio and theme updates into main and verify the live GitHub Pages site.
+- **Why now**: Will approved release and deployment of the reviewed updates.
 - **Files in play**:
-  - `index.html` (hand-maintained home page)
-  - `tokens.css`, `site.css`, `assets/headshot.jpg`
-  - `templates/post.html`
-  - `posts/*.md`, `writing/*.html`
-  - `publish.py`
+  - `index.html`
+  - `site.css`
+  - `assets/projects/retention-agents.jpg`
+  - `STATE.md`
 - **Constraints**:
-  - Must be a static site (GitHub Pages).
-  - `willhennessy.io` DNS still managed at Namecheap and pointed at parking.
+  - Preserve the requested copy and light-mode appearance.
+  - Use the existing GitHub Pages deployment from main.
 - **Acceptance Criteria**:
-  - [x] Repo contains the redesigned static site (tokens, styles, hero, writing list, projects, footer).
-  - [x] `publish.py` renders markdown posts into `writing/*.html`.
-  - [x] At least one real post renders end-to-end and is linked from the index.
-  - [ ] DNS records for `willhennessy.io` point at GitHub Pages and the live site resolves correctly.
-  - [ ] HTTPS enforced on the custom domain.
+  - [x] Static checks pass for copy, project tags, local image assets, JPEG validity, and whitespace.
+  - [ ] Release PR is merged into main.
+  - [ ] GitHub Pages deployment succeeds for the merge commit.
+  - [ ] Live HTTPS homepage, styles, and thumbnail serve the updates.
 - **Status**: In Progress
 
 ## Blockers / Open Questions
 
-- `willhennessy.io` still resolves to Namecheap parking instead of GitHub Pages.
-- `www.willhennessy.io` still points to `parkingpage.namecheap.com`.
+- GitHub CLI and Git push credentials are expired; the connected GitHub app has write access and is being used for publication.
 
 ## Up Next
 
-- [ ] Update Namecheap DNS for `willhennessy.io` and `www`
-- [ ] Wait for DNS to propagate
-- [ ] Turn on HTTPS enforcement in GitHub Pages once eligible
-- [ ] Backfill more posts (`posts/*.md`) and rerun `python3 publish.py`
+- [ ] Merge the release PR.
+- [ ] Wait for the GitHub Pages build and verify the live site.
+- [ ] Backfill more posts (`posts/*.md`) when requested.
 
 ## Completed
 
+- [x] Added a Magnet-only dark-mode blue base to reduce the white cast while preserving light mode.
+- [x] Decoupled project thumbnail gradient bases from the dark sidebar color and verified light-mode gradients remain identical.
+- [x] Applied all six browser copy comments and updated the homepage meta description for Sierra positioning.
+- [x] Added Retention Agents first in the projects grid with the Sierra Accelerators thumbnail, purple colors, and responsive preview verification.
 - [x] Synced homepage writing titles from post frontmatter and added `publish.py` automation for existing writing-list links
-- [x] Added Vimeo embed support to `publish.py` and published the Architect demo video in `introducing-architect`
-- [x] Implemented the Claude Design handoff: `tokens.css`, `site.css`, hero, writing list, projects, footer
-- [x] Stripped design-time tooling (tweaks panel, React/Babel CDN) from production HTML
-- [x] Wired GitHub Pages to the custom domain `willhennessy.io`
 
 ## Notes for Next Session
 
-The home page is hand-maintained in `index.html`, including the projects grid and writing-list membership/order. `publish.py` syncs posts from `/Users/will/code/writing/publish` into `posts/`, renders `writing/*.html`, normalizes pasted Vimeo iframe embeds, and now syncs titles for existing homepage writing links from post frontmatter. The remaining blocker is DNS at Namecheap.
+`site.css` now sets `--thumb-base: #F6F5F0` on `.project-thumb`, matching the light sidebar color in both themes by default. Magnet overrides that base to `#8BBDE0` only in dark mode, using its project URL as the selector. Per-card accent colors and radial overlays still apply. Dark-theme accent tokens can still differ slightly from light-theme accents; the default pale base is fixed, with the intentional Magnet dark-mode exception. The latest gradient adjustment passed direct CSS equivalence checks but was not visually verified in the browser.
+
+The home page is hand-maintained in `index.html`, including the projects grid and writing-list membership/order. Retention Agents is the first project, uses the existing card styles, and shares a singular Agent tag with Architect. The homepage now positions Will as building long-horizon agents at Sierra and describes Architect in the past tense. Its local thumbnail is Sierra's original social image, downloaded at 1200 × 630 from `https://cdn.sanity.io/images/ca4jck6w/production/78a871ab7a1c63c02afc931c3e3113eaae79c113-2400x1260.png?w=1200`. Verified locally at desktop and 390px mobile widths; changes have not been committed or deployed. `publish.py` syncs posts from `/Users/will/code/writing/publish` into `posts/`, renders `writing/*.html`, normalizes pasted Vimeo iframe embeds, and syncs titles for existing homepage writing links from post frontmatter. The HTTPS production URL responds successfully from GitHub Pages as of this release session; the earlier DNS parking notes are historical.
+
+Latest copy edit: Retention Agents now reads “Long-horizon agents to increase retention for subscription companies.”
+
+Hero subtitle now reads “PM at Sierra.”
