@@ -264,14 +264,19 @@
 }
 
 .project-thumb {
+  /* Keep artwork colors clear in both themes, independent of the page background. */
+  --thumb-base: #F6F5F0;
   aspect-ratio: 4 / 3;
   position: relative;
   overflow: hidden;
   border-bottom: 1px solid var(--color-border-subtle);
   /* colors are set per-card via --thumb-a / --thumb-b / --thumb-glyph */
   background: linear-gradient(135deg,
-    color-mix(in srgb, var(--thumb-a) 22%, var(--color-bg-sidebar)),
-    color-mix(in srgb, var(--thumb-b) 16%, var(--color-bg-sidebar)));
+    color-mix(in srgb, var(--thumb-a) 22%, var(--thumb-base)),
+    color-mix(in srgb, var(--thumb-b) 16%, var(--thumb-base)));
+}
+[data-theme="dark"] .project-card[href="https://github.com/magnet-finance/magnet-app"] .project-thumb {
+  --thumb-base: #8BBDE0;
 }
 .project-thumb::before {
   content: "";
